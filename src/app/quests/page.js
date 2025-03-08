@@ -57,18 +57,23 @@ const QuestsPage = () => {
       
       setLoading(true);
       try {
-        // Fetch deposits, withdrawals, and daily summaries
-        const [depositsRes, withdrawalsRes, dailyRes] = await Promise.all([
+        // Fetch deposits and withdrawals
+        const [depositsRes, withdrawalsRes] = await Promise.all([
           fetch(`/api/nessie/deposits?sideHustle=${selectedHustle}`),
           fetch(`/api/nessie/withdrawals?sideHustle=${selectedHustle}`)
         ]);
         
         const deposits = await depositsRes.json();
         const withdrawals = await withdrawalsRes.json();
-        const dailySummary = await dailyRes.json();
 
         console.log('Deposits:', deposits);
         console.log('Withdrawals:', withdrawals);
+
+        // Fetch daily summaries separately to debug
+        console.log('Fetching daily summaries...');
+        const dailyRes = await fetch(`/api/nessie/summaries/day?sideHustle=${selectedHustle}`);
+        console.log('Daily summaries response:', dailyRes);
+        const dailySummary = await dailyRes.json();
         console.log('Daily Summary:', dailySummary);
 
         // Use the filtered data directly from the API
