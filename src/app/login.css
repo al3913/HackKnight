@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(to bottom, #E8F7D6, #7DDBA3);
+  background: linear-gradient(135deg, #87CEEB 0%, #B4E7F8 15%, #E8F7D6 40%, #9DE4C2 70%, #5ED3B8 100%);
   position: relative;
   overflow: hidden;
   padding-bottom: 8rem;
@@ -91,6 +91,17 @@
   object-fit: contain;
 }
 
+@keyframes welcome-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .welcome-section {
   margin: 1rem 0;
   z-index: 2;
@@ -103,6 +114,7 @@
   color: #093030;
   margin: 0;
   font-weight: bold;
+  animation: welcome-fade-in 0.8s ease-out forwards;
 }
 
 .welcome-section p {
@@ -110,6 +122,8 @@
   color: #093030;
   opacity: 0.8;
   margin-top: 0.5rem;
+  animation: welcome-fade-in 0.8s ease-out 0.2s forwards;
+  opacity: 0;
 }
 
 .stats-section {
@@ -158,11 +172,14 @@
   color: white;
   -webkit-text-stroke: 1.5px #9AD7AE;
   margin: 0.25rem 0;
+  opacity: 0;
+  animation: welcome-fade-in 1.2s ease-out 0.4s forwards;
 }
 
 .stat-value.expense {
   color: #00D09E;
   -webkit-text-stroke: 0;
+  animation: welcome-fade-in 1.2s ease-out 0.8s forwards;
 }
 
 .stat-status {

@@ -27,7 +27,7 @@ const HomePage = () => {
         if (totalAmount > totalWithdrawals) {
           status = 'Looking Good!';
         } else {
-          status = 'Visit the Help tab for financial tips';
+          status = 'Hm, you might need some help, visit the Help tab for some tips!';
         }
 
         setFinancialData(prevData => ({
