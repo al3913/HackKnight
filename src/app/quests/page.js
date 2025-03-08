@@ -31,6 +31,8 @@ const QuestsPage = () => {
   const [selectedHustle, setSelectedHustle] = useState('');
   const [loading, setLoading] = useState(true);
   const [hustleData, setHustleData] = useState(null);
+  const [suggestions, setSuggestions] = useState('');
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const router = useRouter();
 
   // Fetch available side hustles
@@ -49,6 +51,29 @@ const QuestsPage = () => {
     };
     fetchSideHustles();
   }, []);
+
+  // Fetch suggestions when hustle changes
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!selectedHustle) return;
+      
+      setSuggestionsLoading(true);
+      try {
+        const response = await fetch(`/api/nessie/gemini/sideHustleAnalysis?sideHustle=${selectedHustle}`);
+        const data = await response.json();
+        console.log('Gemini Analysis Response:', data);
+        console.log('Analysis content:', data.aiAnalysis);
+        setSuggestions(data.aiAnalysis || 'No suggestions available at the moment.');
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions('Unable to load suggestions. Please try again later.');
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [selectedHustle]);
 
   // Fetch data for selected side hustle
   useEffect(() => {
@@ -230,6 +255,23 @@ const QuestsPage = () => {
                 {lineChartData && <Line data={lineChartData} options={chartOptions} />}
               </div>
             </div>
+
+            <div className="analytics-card suggestions">
+              <h3>Quest Insights</h3>
+              {suggestionsLoading ? (
+                <div className="suggestions-loading">Analyzing your quest data...</div>
+              ) : (
+                <div className="suggestions-content">
+                  {suggestions ? (
+                    suggestions.split('\n').map((line, i) => (
+                      <div key={i} style={{ marginBottom: '0.5rem' }}>{line}</div>
+                    ))
+                  ) : (
+                    <div>Waiting for analysis...</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="no-data">No data available for this quest</div>
@@ -369,6 +411,26 @@ const QuestsPage = () => {
           background: rgba(255, 255, 255, 0.6);
           border-radius: 1rem;
           backdrop-filter: blur(10px);
+        }
+
+        .analytics-card.suggestions {
+          grid-column: 1 / -1;
+        }
+
+        .suggestions-content {
+          background: rgba(255, 255, 255, 0.3);
+          padding: 1rem;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          line-height: 1.5;
+          white-space: pre-wrap;
+        }
+
+        .suggestions-loading {
+          text-align: center;
+          color: #227C72;
+          font-style: italic;
+          padding: 1rem;
         }
       `}</style>
     </div>
