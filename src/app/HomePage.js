@@ -7,11 +7,13 @@ import './login.css';
 import PieChart from './components/PieChart';
 import TransactionList from './components/TransactionList';
 import { useFinancialData } from './hooks/useFinancialData';
+import LineChart from './components/LineChart';
 
 const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState('My Wallet');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [activeTimeframe, setActiveTimeframe] = useState('month');
   const menuRef = useRef(null);
   const router = useRouter();
   
@@ -241,7 +243,7 @@ const HomePage = () => {
       </div>
 
       <div className="overview-section">
-        <h2>Overview</h2>
+        <h2>Overview Dashboard</h2>
         <div className="overview-cards">
           <div className="overview-card">
             <PieChart refreshTrigger={refreshTrigger} />
@@ -252,56 +254,54 @@ const HomePage = () => {
         </div>
       </div>
 
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-
-      <div className="content-section">
-        <h1 className="welcome-title">Welcome to SideQuest</h1>
-        <div className="quest-container">
-          <div className="quest-card">
-            <h2>Active Quests</h2>
-            <div className="quest-list">
-              <div className="quest-item">
-                <h3>Dragon&apos;s Lair Challenge</h3>
-                <p>Defeat the dragon and claim your reward!</p>
-              </div>
-              <div className="quest-item">
-                <h3>Forest Explorer</h3>
-                <p>Discover hidden treasures in the mystical forest.</p>
-              </div>
-            </div>
-          </div>
-          <div className="quest-card">
-            <h2>Completed Quests</h2>
-            <div className="quest-list">
-              <div className="quest-item completed">
-                <h3>Tutorial Quest</h3>
-                <p>Learn the basics of adventuring</p>
-              </div>
-            </div>
-          </div>
+      <div className="trends-section">
+        <h2>Income Trends</h2>
+        <div className="timeframe-buttons">
+          <button 
+            className={`timeframe-button ${activeTimeframe === 'day' ? 'active' : ''}`}
+            onClick={() => setActiveTimeframe('day')}
+          >
+            Daily
+          </button>
+          <button 
+            className={`timeframe-button ${activeTimeframe === 'week' ? 'active' : ''}`}
+            onClick={() => setActiveTimeframe('week')}
+          >
+            Weekly
+          </button>
+          <button 
+            className={`timeframe-button ${activeTimeframe === 'month' ? 'active' : ''}`}
+            onClick={() => setActiveTimeframe('month')}
+          >
+            Monthly
+          </button>
+        </div>
+        <div className="trends-chart">
+          <LineChart timeframe={activeTimeframe} refreshTrigger={refreshTrigger} />
         </div>
       </div>
 
+      <Image
+        src="/cloud1.png"
+        alt="Cloud"
+        width={80}
+        height={48}
+        className="cloud"
+      />
+      <Image
+        src="/cloud1.png"
+        alt="Cloud"
+        width={80}
+        height={48}
+        className="cloud"
+      />
+      <Image
+        src="/cloud1.png"
+        alt="Cloud"
+        width={80}
+        height={48}
+        className="cloud"
+      />
       <div className="wave-background"></div>
     </div>
   );
