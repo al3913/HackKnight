@@ -14,11 +14,36 @@ const HomePage = () => {
   const [activeMenuItem, setActiveMenuItem] = useState('My Wallet');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTimeframe, setActiveTimeframe] = useState('month');
+  const [userProfile, setUserProfile] = useState({
+    name: 'John Smith',
+    email: 'john.smith@example.com',
+    id: '25030024'
+  });
   const menuRef = useRef(null);
   const router = useRouter();
   
   // Use the custom hook instead of local state and useEffect
   const { financialData, isLoading, error, refreshData } = useFinancialData();
+
+  // Add useEffect to listen for profile changes
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      const profile = JSON.parse(savedProfile);
+      setUserProfile(profile);
+    }
+
+    // Add event listener for storage changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'userProfile') {
+        const profile = JSON.parse(e.newValue);
+        setUserProfile(profile);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Handle refresh for all components
   const handleRefresh = () => {
@@ -103,6 +128,9 @@ const HomePage = () => {
       case 'Chat':
         router.push('/chat');
         break;
+      case 'Profile':
+        router.push('/profile');
+        break;
       case 'My Quests':
         router.push('/quests');
         break;
@@ -148,16 +176,16 @@ const HomePage = () => {
         <div className="profile-section">
           <div className="profile-image-container">
             <Image
-              src="/profile-placeholder.jpg"
+              src="/dragon2.png"
               alt="Profile"
               width={100}
               height={100}
               className="profile-image"
             />
           </div>
-          <h2 className="profile-name">John Smith</h2>
-          <p className="profile-email">john.smith@example.com</p>
-          <p className="profile-id">ID: 25030024</p>
+          <h2 className="profile-name">{userProfile.name}</h2>
+          <p className="profile-email">{userProfile.email}</p>
+          <p className="profile-id">ID: {userProfile.id}</p>
         </div>
         <nav className="menu-items">
           {menuItems.map((item) => (

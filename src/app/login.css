@@ -748,4 +748,200 @@
   padding: 1.5rem;
   height: 400px;
   backdrop-filter: blur(10px);
+}
+
+/* Profile Page Styles */
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #47C9CA 0%, #5ED3B8 25%, #7DDBA3 50%, #B4E7C8 75%, #E8F7D6 100%);
+  padding: 1rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.profile-header h1 {
+  color: #093030;
+  font-size: 2rem;
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #093030;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-content {
+  max-width: 600px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.profile-image-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.large-profile-image-container {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.change-photo-button {
+  background: none;
+  border: none;
+  color: #093030;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.change-photo-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-group label {
+  color: #093030;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.info-group p {
+  color: #093030;
+  font-size: 1.1rem;
+  margin: 0;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(9, 48, 48, 0.1);
+}
+
+.edit-button {
+  background-color: #B4E7C8;
+  color: #093030;
+  border: none;
+  padding: 1rem;
+  border-radius: 9999px;
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.edit-button:hover {
+  background-color: #9DE4C2;
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-edit-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-edit-form label {
+  color: #093030;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.profile-input {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid rgba(9, 48, 48, 0.1);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  color: #093030;
+  background: rgba(255, 255, 255, 0.9);
+  transition: all 0.2s ease;
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: #B4E7C8;
+  box-shadow: 0 0 0 2px rgba(180, 231, 200, 0.2);
+}
+
+.profile-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.save-button {
+  background-color: #B4E7C8;
+  color: #093030;
+  border: none;
+  padding: 1rem;
+  border-radius: 9999px;
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-button:hover {
+  background-color: #9DE4C2;
+}
+
+.cancel-button {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #093030;
+  border: 1px solid #E2E8F0;
+  padding: 1rem;
+  border-radius: 9999px;
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 } 
