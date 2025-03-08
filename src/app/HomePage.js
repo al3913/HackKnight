@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import './login.css';
+import PieChart from './components/PieChart';
+import TransactionList from './components/TransactionList';
 
 const HomePage = () => {
   const [financialData, setFinancialData] = useState({
@@ -27,7 +29,7 @@ const HomePage = () => {
         if (totalAmount > totalWithdrawals) {
           status = 'Looking Good!';
         } else {
-          status = 'Hm, you might need some help, visit the Help tab for some tips!';
+          status = 'Hm, you might need some help... visit the Help tab for some tips!';
         }
 
         setFinancialData(prevData => ({
@@ -119,8 +121,12 @@ const HomePage = () => {
       <div className="overview-section">
         <h2>Overview</h2>
         <div className="overview-cards">
-          <div className="overview-card"></div>
-          <div className="overview-card"></div>
+          <div className="overview-card">
+            <PieChart />
+          </div>
+          <div className="overview-card">
+            <TransactionList />
+          </div>
         </div>
       </div>
 
