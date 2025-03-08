@@ -9,9 +9,6 @@ export const isToday = (date) => {
 // Helper function to fetch transactions from Nessie API
 export async function fetchTransactions(startDate, sideHustle = null) {
   const now = new Date();
-  if (!isToday(now)) {
-    now.setHours(23, 59, 59, 999);
-  }
 
   // Build the URLs using environment variables
   const baseUrl = 'http://api.nessieisreal.com';
@@ -47,7 +44,13 @@ export async function fetchTransactions(startDate, sideHustle = null) {
   // Filter transactions based on the date range and side hustle name if provided
   const filterTransaction = (transaction) => {
     const transactionDate = new Date(transaction.transaction_date);
-    const dateInRange = transactionDate >= startDate && transactionDate <= now;
+    
+    // Convert dates to timestamps for accurate comparison
+    const startTimestamp = startDate.getTime();
+    const transactionTimestamp = transactionDate.getTime();
+    const nowTimestamp = now.getTime();
+    
+    const dateInRange = transactionTimestamp >= startTimestamp && transactionTimestamp <= nowTimestamp;
     
     if (!dateInRange) return false;
     
@@ -77,7 +80,7 @@ export async function fetchTransactions(startDate, sideHustle = null) {
 
   // Sort transactions by date
   allTransactions.sort((a, b) => 
-    new Date(a.transaction_date) - new Date(b.transaction_date)
+    new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
   );
 
   return { 

@@ -69,7 +69,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { amount, description } = body;
+    const { amount, description, transaction_date } = body;
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -78,13 +78,25 @@ export async function POST(request) {
       );
     }
 
+    // Validate transaction_date if provided
+    let parsedDate;
+    if (transaction_date) {
+      parsedDate = new Date(transaction_date);
+      if (isNaN(parsedDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid transaction date format' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Create withdrawal in Nessie API
     const newWithdrawal = await callNessieApi(
       `/accounts/${process.env.ACCOUNT_ID}/withdrawals`,
       'POST',
       {
         medium: 'balance',
-        transaction_date: new Date().toISOString(),
+        transaction_date: parsedDate ? parsedDate.toISOString() : new Date().toISOString(),
         status: 'completed',
         amount: amount,
         description: description || 'Withdrawal'
