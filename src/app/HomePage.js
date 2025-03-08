@@ -17,10 +17,14 @@ const HomePage = () => {
         const response = await fetch('/api/nessie/deposits');
         const data = await response.json();
         const totalAmount = data.totalAmount;
+
+        const response2 = await fetch('/api/nessie/withdrawals');
+        const data2 = await response2.json();
+        const totalWithdrawals = data2.totalAmount;
         
         // Calculate status based on revenue vs expense comparison
         let status;
-        if (totalAmount > financialData.totalExpense) {
+        if (totalAmount > totalWithdrawals) {
           status = 'Looking Good!';
         } else {
           status = 'Visit the Help tab for financial tips';
@@ -29,6 +33,7 @@ const HomePage = () => {
         setFinancialData(prevData => ({
           ...prevData,
           totalAmount: totalAmount,
+          totalExpense: totalWithdrawals,
           status: status
         }));
       } catch (error) {
