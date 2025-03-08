@@ -7,7 +7,7 @@ export const isToday = (date) => {
 };
 
 // Helper function to fetch transactions from Nessie API
-export async function fetchTransactions(startDate) {
+export async function fetchTransactions(startDate, sideHustle = null) {
   const now = new Date();
   if (!isToday(now)) {
     now.setHours(23, 59, 59, 999);
@@ -44,16 +44,22 @@ export async function fetchTransactions(startDate) {
   const deposits = await depositsResponse.json();
   const withdrawals = await withdrawalsResponse.json();
 
-  // Filter transactions based on the date range
-  const filteredDeposits = deposits.filter(deposit => {
-    const transactionDate = new Date(deposit.transaction_date);
-    return transactionDate >= startDate && transactionDate <= now;
-  });
+  // Filter transactions based on the date range and side hustle name if provided
+  const filterTransaction = (transaction) => {
+    const transactionDate = new Date(transaction.transaction_date);
+    const dateInRange = transactionDate >= startDate && transactionDate <= now;
+    
+    if (!dateInRange) return false;
+    
+    if (sideHustle) {
+      return transaction.description.toLowerCase().includes(sideHustle.toLowerCase());
+    }
+    
+    return true;
+  };
 
-  const filteredWithdrawals = withdrawals.filter(withdrawal => {
-    const transactionDate = new Date(withdrawal.transaction_date);
-    return transactionDate >= startDate && transactionDate <= now;
-  });
+  const filteredDeposits = deposits.filter(filterTransaction);
+  const filteredWithdrawals = withdrawals.filter(filterTransaction);
 
   // Combine deposits and withdrawals into a single array of transactions
   const allTransactions = [
@@ -74,5 +80,14 @@ export async function fetchTransactions(startDate) {
     new Date(a.transaction_date) - new Date(b.transaction_date)
   );
 
-  return { allTransactions, now };
+  return { 
+    allTransactions, 
+    now,
+    metadata: {
+      totalTransactions: allTransactions.length,
+      sideHustle: sideHustle || 'all',
+      depositsCount: filteredDeposits.length,
+      withdrawalsCount: filteredWithdrawals.length
+    }
+  };
 } 

@@ -1,50 +1,61 @@
 import { NextResponse } from 'next/server';
 import { fetchTransactions } from '../utils';
 
-export async function GET() {
+export async function GET(request) {
   try {
-    // Set to Sunday of current week
+    // Get sideHustle from query parameters
+    const { searchParams } = new URL(request.url);
+    const sideHustle = searchParams.get('sideHustle');
+
+    // Set to start of 7 days ago in local timezone
     const now = new Date();
-    const currentDay = now.getDay();
     const startDate = new Date(now);
-    startDate.setDate(now.getDate() - currentDay); // Go back to Sunday
+    startDate.setDate(startDate.getDate() - 6); // Go back 6 days to get 7 days total
     startDate.setHours(0, 0, 0, 0);
 
-    const { allTransactions, now: currentTime } = await fetchTransactions(startDate);
+    const { allTransactions, now: currentTime, metadata: transactionMetadata } = 
+      await fetchTransactions(startDate, sideHustle);
 
-    // Initialize days of the week
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const timeSeriesData = daysOfWeek.reduce((acc, day) => ({ ...acc, [day]: 0.00 }), {});
+    // Initialize daily data for the past 7 days
+    const timeSeriesData = {};
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      const key = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      timeSeriesData[key] = 0.00;
+    }
 
-    // Get current day for limiting the view
-    const currentDayIndex = currentTime.getDay();
-
-    // Calculate running totals only up to current day
+    // Calculate running totals
     let runningTotal = 0;
     allTransactions.forEach(transaction => {
       const date = new Date(transaction.transaction_date);
-      const transactionDayIndex = date.getDay();
+      const key = date.toISOString().split('T')[0];
       
-      // Only include transactions up to current day
-      if (transactionDayIndex <= currentDayIndex) {
-        const dayName = daysOfWeek[transactionDayIndex];
+      if (timeSeriesData.hasOwnProperty(key)) {
         runningTotal = Number((runningTotal + transaction.amount).toFixed(2));
-        timeSeriesData[dayName] = runningTotal;
+        timeSeriesData[key] = runningTotal;
       }
     });
 
-    // Only populate running totals up to current day
+    // Populate running totals for days without transactions
     let lastTotal = 0;
-    daysOfWeek.forEach((day, index) => {
-      if (index <= currentDayIndex) {
-        if (timeSeriesData[day] === 0 && lastTotal !== 0) {
-          timeSeriesData[day] = lastTotal;
-        }
-        lastTotal = timeSeriesData[day];
+    Object.keys(timeSeriesData).sort().forEach(date => {
+      if (timeSeriesData[date] === 0 && lastTotal !== 0) {
+        timeSeriesData[date] = lastTotal;
       }
+      lastTotal = timeSeriesData[date];
     });
 
-    return NextResponse.json({ timeSeriesData });
+    return NextResponse.json({
+      timeSeriesData,
+      metadata: {
+        ...transactionMetadata,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: now.toISOString().split('T')[0],
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentTime: currentTime.toLocaleString()
+      }
+    });
   } catch (error) {
     console.error('Error in week view:', error);
     return NextResponse.json(

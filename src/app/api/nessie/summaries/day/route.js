@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
 import { fetchTransactions } from '../utils';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    // Get sideHustle from query parameters
+    const { searchParams } = new URL(request.url);
+    const sideHustle = searchParams.get('sideHustle');
+
     // Set to start of current day in local timezone
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
-    const { allTransactions, now: currentTime } = await fetchTransactions(startDate);
+    const { allTransactions, now: currentTime, metadata: transactionMetadata } = 
+      await fetchTransactions(startDate, sideHustle);
 
     // Get current hour in local timezone (0-23)
     const currentHour = currentTime.getHours();
@@ -45,6 +50,7 @@ export async function GET() {
     return NextResponse.json({
       timeSeriesData,
       metadata: {
+        ...transactionMetadata,
         startHour: "00",
         currentHour: currentHour.toString().padStart(2, '0'),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

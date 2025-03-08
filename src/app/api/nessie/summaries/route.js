@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server';
 import { fetchTransactions } from './utils';
 
 export async function GET(request) {
-  // Get the current URL
+  // Get the current URL and search params
   const url = new URL(request.url);
+  const sideHustle = url.searchParams.get('sideHustle');
   
   // If we're at the base summaries endpoint, redirect to day view
   if (url.pathname === '/api/nessie/summaries') {
-    return NextResponse.redirect(new URL('/api/nessie/summaries/day', request.url));
+    const dayViewUrl = new URL('/api/nessie/summaries/day', request.url);
+    if (sideHustle) {
+      dayViewUrl.searchParams.set('sideHustle', sideHustle);
+    }
+    return NextResponse.redirect(dayViewUrl);
   }
 
   // This shouldn't be reached, but just in case, return the day view data
@@ -16,7 +21,8 @@ export async function GET(request) {
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
-    const { allTransactions, now: currentTime } = await fetchTransactions(startDate);
+    const { allTransactions, now: currentTime, metadata: transactionMetadata } = 
+      await fetchTransactions(startDate, sideHustle);
 
     // Get current hour in local timezone (0-23)
     const currentHour = currentTime.getHours();
@@ -54,6 +60,7 @@ export async function GET(request) {
     return NextResponse.json({
       timeSeriesData,
       metadata: {
+        ...transactionMetadata,
         startHour: "00",
         currentHour: currentHour.toString().padStart(2, '0'),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
