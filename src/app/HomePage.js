@@ -113,6 +113,9 @@ const HomePage = () => {
       case 'Chat':
         router.push('/chat'); // Navigate to chat page
         break;
+      case 'Profile':
+        router.push('/profile'); // Navigate to profile page
+        break;
       // Add other cases for different menu items if needed
       default:
         // Handle other menu items
