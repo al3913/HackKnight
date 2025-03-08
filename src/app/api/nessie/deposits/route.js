@@ -1,33 +1,85 @@
 // src/app/api/nessie/deposits/route.js
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+// Helper function to make Nessie API calls
+async function callNessieApi(endpoint, method = 'GET', body = null) {
+  const baseUrl = 'http://api.nessieisreal.com';
+  const accountId = process.env.ACCOUNT_ID;
+  const apiKey = process.env.NESSIE_API_KEY;
+
+  const url = `${baseUrl}${endpoint}?key=${apiKey}`;
+  
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    ...(body && { body: JSON.stringify(body) })
+  };
+
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`Nessie API call failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// GET endpoint to retrieve deposits
+export async function GET(request) {
   try {
-    // Build the URL using environment variables
-    const nessieUrl = `http://api.nessieisreal.com/accounts/${process.env.ACCOUNT_ID}/deposits?key=${process.env.NESSIE_API_KEY}`;
+    const deposits = await callNessieApi(`/accounts/${process.env.ACCOUNT_ID}/deposits`);
+    
+    // Calculate total amount
+    const totalAmount = deposits.reduce((sum, deposit) => sum + deposit.amount, 0);
 
-    // Fetch deposit data from the Nessie API
-    const response = await fetch(nessieUrl);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const depositsData = await response.json();
-
-    // Calculate total amount of deposits
-    const totalAmount = depositsData.reduce((sum, deposit) => sum + deposit.amount, 0);
-
-    // Return deposits data and total
     return NextResponse.json({
-      deposits: depositsData,
-      totalAmount: totalAmount
+      deposits,
+      totalAmount,
+      count: deposits.length
     });
-
   } catch (error) {
     console.error('Error fetching deposits:', error);
     return NextResponse.json(
-      { error: 'Error fetching deposits' }, 
+      { error: 'Failed to fetch deposits' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST endpoint to create a new deposit
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { amount, description } = body;
+
+    if (!amount || amount <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid deposit amount' },
+        { status: 400 }
+      );
+    }
+
+    // Create deposit in Nessie API
+    const newDeposit = await callNessieApi(
+      `/accounts/${process.env.ACCOUNT_ID}/deposits`,
+      'POST',
+      {
+        medium: 'balance',
+        transaction_date: new Date().toISOString(),
+        status: 'completed',
+        amount: amount,
+        description: description || 'Deposit'
+      }
+    );
+
+    return NextResponse.json({
+      message: 'Deposit created successfully',
+      deposit: newDeposit
+    });
+  } catch (error) {
+    console.error('Error creating deposit:', error);
+    return NextResponse.json(
+      { error: 'Failed to create deposit' },
       { status: 500 }
     );
   }

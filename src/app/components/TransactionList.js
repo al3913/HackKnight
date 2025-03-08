@@ -2,49 +2,51 @@
 
 import React, { useEffect, useState } from 'react';
 
-const TransactionList = () => {
+const TransactionList = ({ refreshTrigger }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      // Fetch both deposits and withdrawals
+      const [depositsRes, withdrawalsRes] = await Promise.all([
+        fetch('/api/nessie/deposits'),
+        fetch('/api/nessie/withdrawals')
+      ]);
+
+      const depositsData = await depositsRes.json();
+      const withdrawalsData = await withdrawalsRes.json();
+
+      // Combine and format transactions
+      const allTransactions = [
+        ...depositsData.deposits.map(d => ({
+          ...d,
+          type: 'deposit',
+          formattedAmount: `+$${d.amount.toFixed(2)}`
+        })),
+        ...withdrawalsData.withdrawals.map(w => ({
+          ...w,
+          type: 'withdrawal',
+          formattedAmount: `-$${w.amount.toFixed(2)}`
+        }))
+      ];
+
+      // Sort by date (assuming there's a date field, adjust as needed)
+      allTransactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+
+      setTransactions(allTransactions.slice(0, 5)); // Show only last 5 transactions
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data whenever refreshTrigger changes
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        // Fetch both deposits and withdrawals
-        const [depositsRes, withdrawalsRes] = await Promise.all([
-          fetch('/api/nessie/deposits'),
-          fetch('/api/nessie/withdrawals')
-        ]);
-
-        const depositsData = await depositsRes.json();
-        const withdrawalsData = await withdrawalsRes.json();
-
-        // Combine and format transactions
-        const allTransactions = [
-          ...depositsData.deposits.map(d => ({
-            ...d,
-            type: 'deposit',
-            formattedAmount: `+$${d.amount.toFixed(2)}`
-          })),
-          ...withdrawalsData.withdrawals.map(w => ({
-            ...w,
-            type: 'withdrawal',
-            formattedAmount: `-$${w.amount.toFixed(2)}`
-          }))
-        ];
-
-        // Sort by date (assuming there's a date field, adjust as needed)
-        allTransactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
-
-        setTransactions(allTransactions.slice(0, 5)); // Show only last 5 transactions
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-        setLoading(false);
-      }
-    };
-
     fetchTransactions();
-  }, []);
+  }, [refreshTrigger]);
 
   if (loading) {
     return <div>Loading transactions...</div>;

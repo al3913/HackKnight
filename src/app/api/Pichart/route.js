@@ -26,7 +26,7 @@ export async function GET() {
     }
 
     const data = await response.json();
-    console.log('Raw deposits:', data);
+    //console.log('Raw deposits:', data);
 
     // Process the data to calculate totals by description
     const totals = {};
@@ -59,7 +59,7 @@ export async function GET() {
       }
     };
 
-    console.log('Processed data:', processedData);
+    //console.log('Processed data:', processedData);
 
     return new Response(JSON.stringify(processedData), {
       status: 200,

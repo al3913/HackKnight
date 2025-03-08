@@ -21,43 +21,48 @@ ChartJS.register(
   Title
 );
 
-const PieChart = () => {
+const PieChart = ({ refreshTrigger }) => {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: []
   });
+  const [loading, setLoading] = useState(true);
 
+  const fetchPieChartData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/Pichart');
+      const data = await response.json();
+      
+      const colors = [
+        '#227C72', // Deep teal
+        '#00D09E', // Bright turquoise
+        '#47C9CA', // Medium teal
+        '#113D21', // Dark forest green
+        '#34D399', // Bright emerald
+        '#059669'  // Deep emerald
+      ];
+
+      setChartData({
+        labels: data.pieChartData.map(item => item.description),
+        datasets: [{
+          data: data.pieChartData.map(item => item.amount),
+          backgroundColor: colors,
+          borderColor: 'rgba(255, 255, 255, 0.5)',
+          borderWidth: 2,
+        }]
+      });
+    } catch (error) {
+      console.error('Error fetching pie chart data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data whenever refreshTrigger changes
   useEffect(() => {
-    const fetchPieChartData = async () => {
-      try {
-        const response = await fetch('/api/Pichart');
-        const data = await response.json();
-        
-        const colors = [
-          '#227C72', // Deep teal
-          '#00D09E', // Bright turquoise
-          '#47C9CA', // Medium teal
-          '#113D21', // Dark forest green
-          '#34D399', // Bright emerald
-          '#059669'  // Deep emerald
-        ];
-
-        setChartData({
-          labels: data.pieChartData.map(item => item.description),
-          datasets: [{
-            data: data.pieChartData.map(item => item.amount),
-            backgroundColor: colors,
-            borderColor: 'rgba(255, 255, 255, 0.5)',
-            borderWidth: 2,
-          }]
-        });
-      } catch (error) {
-        console.error('Error fetching pie chart data:', error);
-      }
-    };
-
     fetchPieChartData();
-  }, []);
+  }, [refreshTrigger]);
 
   const options = {
     responsive: true,
@@ -120,12 +125,14 @@ const PieChart = () => {
       alignItems: 'center',
       minHeight: '380px'
     }}>
-      {chartData.labels.length > 0 ? (
+      {loading ? (
+        <div>Loading chart data...</div>
+      ) : chartData.labels.length > 0 ? (
         <div style={{ width: '90%', height: '90%' }}>
           <Pie data={chartData} options={options} />
         </div>
       ) : (
-        <div>Loading chart data...</div>
+        <div>No data found</div>
       )}
     </div>
   );

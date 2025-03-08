@@ -6,17 +6,28 @@ import { useRouter } from 'next/navigation';
 import './login.css';
 import PieChart from './components/PieChart';
 import TransactionList from './components/TransactionList';
+import { useFinancialData } from './hooks/useFinancialData';
 
 const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState('My Wallet');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const menuRef = useRef(null);
   const router = useRouter();
-  const [financialData, setFinancialData] = useState({
-    totalAmount: 0,
-    totalExpense: 0,
-    status: ''
-  });
+  
+  // Use the custom hook instead of local state and useEffect
+  const { financialData, isLoading, error, refreshData } = useFinancialData();
+
+  // Handle refresh for all components
+  const handleRefresh = () => {
+    refreshData();
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -30,39 +41,6 @@ const HomePage = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  useEffect(() => {
-    const fetchFinancialData = async () => {
-      try {
-        const response = await fetch('/api/nessie/deposits');
-        const data = await response.json();
-        const totalAmount = data.totalAmount;
-
-        const response2 = await fetch('/api/nessie/withdrawals');
-        const data2 = await response2.json();
-        const totalWithdrawals = data2.totalAmount;
-        
-        // Calculate status based on revenue vs expense comparison
-        let status;
-        if (totalAmount > totalWithdrawals) {
-          status = 'Looking Good!';
-        } else {
-          status = 'Hm, you might need some help... visit the Help tab for some tips!';
-        }
-
-        setFinancialData(prevData => ({
-          ...prevData,
-          totalAmount: totalAmount,
-          totalExpense: totalWithdrawals,
-          status: status
-        }));
-      } catch (error) {
-        console.error('Error fetching financial data:', error);
-      }
-    };
-
-    fetchFinancialData();
-  }, [financialData.totalExpense]);
 
   const menuItems = [
     { 
@@ -196,33 +174,62 @@ const HomePage = () => {
 
       <div className="stats-section">
         <div className="stats-container">
-          <div className="stat-item">
-            <div className="stat-label">
-              <Image
-                src="/Income.png"
-                alt="Income"
-                width={11}
-                height={11}
-                className="stat-icon"
-              />
-              <span>Total Revenue</span>
-            </div>
-            <div className="stat-value">${financialData.totalAmount.toFixed(2)}</div>
-            <div className="stat-status">{financialData.status}</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-label">
-              <Image
-                src="/Expense.png"
-                alt="Expense"
-                width={11}
-                height={11}
-                className="stat-icon"
-              />
-              <span>Total Expense</span>
-            </div>
-            <div className="stat-value expense">-${financialData.totalExpense.toFixed(2)}</div>
-          </div>
+          {isLoading ? (
+            <div className="loading">Updating financial data...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            <>
+              <div className="stat-item">
+                <div className="stat-label">
+                  <Image
+                    src="/Income.png"
+                    alt="Income"
+                    width={11}
+                    height={11}
+                    className="stat-icon"
+                  />
+                  <span>Total Revenue</span>
+                  <button 
+                    onClick={handleRefresh}
+                    className="refresh-button"
+                    disabled={isLoading}
+                  >
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+                    </svg>
+                  </button>
+                </div>
+                <div className="stat-value">${financialData.totalAmount.toFixed(2)}</div>
+                <div className="stat-status">{financialData.status}</div>
+                <div className="last-updated">
+                  Last updated: {new Date(financialData.lastUpdated).toLocaleTimeString()}
+                </div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-label">
+                  <Image
+                    src="/Expense.png"
+                    alt="Expense"
+                    width={11}
+                    height={11}
+                    className="stat-icon"
+                  />
+                  <span>Total Expense</span>
+                </div>
+                <div className="stat-value expense">-${financialData.totalExpense.toFixed(2)}</div>
+              </div>
+            </>
+          )}
         </div>
         <Image
           src="/dragon1.png"
@@ -237,10 +244,10 @@ const HomePage = () => {
         <h2>Overview</h2>
         <div className="overview-cards">
           <div className="overview-card">
-            <PieChart />
+            <PieChart refreshTrigger={refreshTrigger} />
           </div>
           <div className="overview-card">
-            <TransactionList />
+            <TransactionList refreshTrigger={refreshTrigger} />
           </div>
         </div>
       </div>
@@ -274,7 +281,7 @@ const HomePage = () => {
             <h2>Active Quests</h2>
             <div className="quest-list">
               <div className="quest-item">
-                <h3>Dragon's Lair Challenge</h3>
+                <h3>Dragon&apos;s Lair Challenge</h3>
                 <p>Defeat the dragon and claim your reward!</p>
               </div>
               <div className="quest-item">
