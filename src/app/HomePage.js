@@ -1,8 +1,40 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import './login.css';
 
 const HomePage = () => {
+  const [financialData, setFinancialData] = useState({
+    totalAmount: 0,
+    totalExpense: 0,
+    status: 'Looking Good!'
+  });
+
+  useEffect(() => {
+    const fetchFinancialData = async () => {
+      try {
+        // Fetch deposits (revenue)
+        const depositResponse = await fetch('/api/nessie/deposits');
+        const depositData = await depositResponse.json();
+        
+        // Fetch withdrawals (expenses)
+        const withdrawalResponse = await fetch('/api/nessie/withdrawals');
+        const withdrawalData = await withdrawalResponse.json();
+
+        setFinancialData(prevData => ({
+          ...prevData,
+          totalAmount: depositData.totalAmount,
+          totalExpense: withdrawalData.totalAmount
+        }));
+      } catch (error) {
+        console.error('Error fetching financial data:', error);
+      }
+    };
+
+    fetchFinancialData();
+  }, []);
+
   return (
     <div className="home-container">
       <header className="home-header">
@@ -27,12 +59,12 @@ const HomePage = () => {
               <span>Total Revenue</span>
               <span className="checkmark">✓</span>
             </div>
-            <div className="stat-value">$7,783.00</div>
-            <div className="stat-status">Looking Good!</div>
+            <div className="stat-value">${financialData.totalAmount.toFixed(2)}</div>
+            <div className="stat-status">{financialData.status}</div>
           </div>
           <div className="stat-item">
             <div className="stat-label">Total Expense</div>
-            <div className="stat-value expense">-$1,187.40</div>
+            <div className="stat-value expense">-${financialData.totalExpense.toFixed(2)}</div>
           </div>
         </div>
         <Image

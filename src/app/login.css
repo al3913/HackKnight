@@ -104,8 +104,16 @@
   backdrop-filter: blur(10px);
 }
 
+.stats-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-right: 6rem;
+}
+
 .stat-item {
-  margin-bottom: 1rem;
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .stat-label {
