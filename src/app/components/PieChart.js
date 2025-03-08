@@ -28,7 +28,7 @@ const PieChart = ({ refreshTrigger }) => {
   });
   const [loading, setLoading] = useState(true);
   const [apiData, setApiData] = useState(null);
-  const [viewType, setViewType] = useState('income'); // 'income', 'expenses', or 'net'
+  const [viewType, setViewType] = useState('income'); // 'income' or 'expenses'
 
   const fetchPieChartData = async () => {
     try {
@@ -96,9 +96,7 @@ const PieChart = ({ refreshTrigger }) => {
     plugins: {
       title: {
         display: true,
-        text: viewType === 'income' ? 'Side Hustle Income Distribution' :
-              viewType === 'expenses' ? 'Side Hustle Expenses Distribution' :
-              'Side Hustle Net Income Distribution',
+        text: viewType === 'income' ? 'Side Hustle Income Distribution' : 'Side Hustle Expenses Distribution',
         color: '#227C72',
         font: {
           family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
@@ -180,7 +178,6 @@ const PieChart = ({ refreshTrigger }) => {
       <div style={{ marginBottom: '1rem' }}>
         <TabButton type="income" label="Income" />
         <TabButton type="expenses" label="Expenses" />
-        <TabButton type="net" label="Net Income" />
       </div>
       
       {loading ? (
@@ -202,9 +199,7 @@ const PieChart = ({ refreshTrigger }) => {
             }}>
               <strong>
                 Total: $
-                {Math.abs(viewType === 'income' ? apiData.totals.totalIncome :
-                         viewType === 'expenses' ? apiData.totals.totalExpenses :
-                         apiData.totals.totalNet).toFixed(2)}
+                {(viewType === 'income' ? apiData.totals.totalIncome : apiData.totals.totalExpenses).toFixed(2)}
               </strong>
             </div>
           )}
