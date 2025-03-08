@@ -163,7 +163,8 @@ export async function GET(request) {
         // Calculate running totals for each hour
         allTransactions.forEach(transaction => {
           const date = new Date(transaction.transaction_date);
-          const hour = date.getHours().toString().padStart(2, '0');
+          // Use UTC hours since the API returns UTC timestamps
+          const hour = date.getUTCHours().toString().padStart(2, '0');
           runningTotal += transaction.amount;
           timeSeriesData[hour] = runningTotal;
         });
@@ -175,7 +176,7 @@ export async function GET(request) {
       const periodBalance = totalDeposits - totalWithdrawals;
 
       // Return combined data with summaries
-      return NextResponse.json({
+      const responseData = {
         view,
         timeRange: {
           from: startDate.toISOString(),
@@ -191,7 +192,12 @@ export async function GET(request) {
           deposits: filteredDeposits,
           withdrawals: filteredWithdrawals
         }
-      });
+      };
+
+      // Log the response data
+      console.log('API Response Data:', JSON.stringify(responseData, null, 2));
+
+      return NextResponse.json(responseData);
 
     } catch (error) {
       console.error('Error fetching account summaries:', error);

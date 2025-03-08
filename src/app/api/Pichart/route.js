@@ -1,6 +1,6 @@
 export async function GET() {
-  const apiKey = '9a0a98a659916e715d6df9e4f0e8a4d7';
-  const accountId = '67cb735a9683f20dd518d244';
+  const apiKey = process.env.NESSIE_API_KEY;
+  const accountId = process.env.ACCOUNT_ID;
   
   try {
     const url = `http://api.nessieisreal.com/accounts/${accountId}/deposits?key=${apiKey}`;
