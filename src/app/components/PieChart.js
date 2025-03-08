@@ -83,15 +83,19 @@ const PieChart = ({ refreshTrigger }) => {
         }
       },
       legend: {
-        position: 'bottom',
+        position: 'right',
+        align: 'center',
         labels: {
           color: '#227C72',
           font: {
             family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-            size: 12
+            size: 14,
+            weight: '500'
           },
-          padding: 20
-        }
+          padding: 15,
+          usePointStyle: true,
+          boxWidth: 10
+        },
       },
       tooltip: {
         callbacks: {
@@ -104,11 +108,11 @@ const PieChart = ({ refreshTrigger }) => {
         },
         titleFont: {
           family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-          size: 12
+          size: 14
         },
         bodyFont: {
           family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-          size: 12
+          size: 14
         }
       }
     }
