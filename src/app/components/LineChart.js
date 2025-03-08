@@ -155,7 +155,7 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
       x: {
         title: {
           display: true,
-          text: timeframe === 'day' ? 'Time (Hours)' : timeframe === 'week' ? 'Day of Week' : 'Week of Month',
+          text: timeframe === 'day' ? 'Time (Hours)' : timeframe === 'week' ? 'Day of Week' : 'Day of Month',
           color: '#227C72',
           font: {
             family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
