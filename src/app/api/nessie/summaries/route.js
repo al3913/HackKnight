@@ -168,6 +168,34 @@ export async function GET(request) {
           runningTotal += transaction.amount;
           timeSeriesData[hour] = runningTotal;
         });
+      } else if (view === 'month') {
+        // Initialize 4 weeks
+        timeSeriesData = {
+          'Week 1': 0,
+          'Week 2': 0,
+          'Week 3': 0,
+          'Week 4': 0
+        };
+
+        // Helper function to determine which week a date falls into
+        const getWeekNumber = (date) => {
+          // Get the day of the month (1-31)
+          const dayOfMonth = date.getUTCDate();
+          
+          // Determine which week the day falls into
+          if (dayOfMonth <= 7) return 'Week 1';
+          if (dayOfMonth <= 14) return 'Week 2';
+          if (dayOfMonth <= 21) return 'Week 3';
+          return 'Week 4';
+        };
+
+        // Calculate running totals for each week
+        allTransactions.forEach(transaction => {
+          const date = new Date(transaction.transaction_date);
+          const weekLabel = getWeekNumber(date);
+          runningTotal += transaction.amount;
+          timeSeriesData[weekLabel] = runningTotal;
+        });
       }
 
       // Calculate the total amount of deposits and withdrawals for the filtered period
