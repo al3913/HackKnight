@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
-import { fetchTransactions } from './utils';
+import { fetchTransactions } from '../utils';
 
-export async function GET(request) {
-  // Get the current URL
-  const url = new URL(request.url);
-  
-  // If we're at the base summaries endpoint, redirect to day view
-  if (url.pathname === '/api/nessie/summaries') {
-    return NextResponse.redirect(new URL('/api/nessie/summaries/day', request.url));
-  }
-
-  // This shouldn't be reached, but just in case, return the day view data
+export async function GET() {
   try {
     // Set to start of current day in local timezone
     const now = new Date();
@@ -61,7 +52,7 @@ export async function GET(request) {
       }
     });
   } catch (error) {
-    console.error('Error in default view:', error);
+    console.error('Error in day view:', error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
