@@ -24,18 +24,38 @@ async function callNessieApi(endpoint, method = 'GET', body = null) {
   return response.json();
 }
 
+// Helper function to filter transactions by side hustle
+function filterBySideHustle(transactions, sideHustle) {
+  if (!sideHustle) return transactions;
+  return transactions.filter(transaction => 
+    transaction.description.toLowerCase().includes(sideHustle.toLowerCase())
+  );
+}
+
 // GET endpoint to retrieve deposits
 export async function GET(request) {
   try {
+    // Extract sideHustle from query parameters
+    const { searchParams } = new URL(request.url);
+    const sideHustle = searchParams.get('sideHustle');
+
     const deposits = await callNessieApi(`/accounts/${process.env.ACCOUNT_ID}/deposits`);
     
+    // Filter deposits by side hustle if parameter is provided
+    const filteredDeposits = filterBySideHustle(deposits, sideHustle);
+    
     // Calculate total amount
-    const totalAmount = deposits.reduce((sum, deposit) => sum + deposit.amount, 0);
+    const totalAmount = filteredDeposits.reduce((sum, deposit) => sum + deposit.amount, 0);
 
     return NextResponse.json({
-      deposits,
+      deposits: filteredDeposits,
       totalAmount,
-      count: deposits.length
+      count: filteredDeposits.length,
+      metadata: {
+        sideHustle: sideHustle || null,
+        originalCount: deposits.length,
+        filteredCount: filteredDeposits.length
+      }
     });
   } catch (error) {
     console.error('Error fetching deposits:', error);

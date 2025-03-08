@@ -23,18 +23,38 @@ async function callNessieApi(endpoint, method = 'GET', body = null) {
   return response.json();
 }
 
+// Helper function to filter transactions by side hustle
+function filterBySideHustle(transactions, sideHustle) {
+  if (!sideHustle) return transactions;
+  return transactions.filter(transaction => 
+    transaction.description.toLowerCase().includes(sideHustle.toLowerCase())
+  );
+}
+
 // GET endpoint to retrieve withdrawals
 export async function GET(request) {
   try {
+    // Extract sideHustle from query parameters
+    const { searchParams } = new URL(request.url);
+    const sideHustle = searchParams.get('sideHustle');
+
     const withdrawals = await callNessieApi(`/accounts/${process.env.ACCOUNT_ID}/withdrawals`);
     
+    // Filter withdrawals by side hustle if parameter is provided
+    const filteredWithdrawals = filterBySideHustle(withdrawals, sideHustle);
+    
     // Calculate total amount
-    const totalAmount = withdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0);
+    const totalAmount = filteredWithdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0);
 
     return NextResponse.json({
-      withdrawals,
+      withdrawals: filteredWithdrawals,
       totalAmount,
-      count: withdrawals.length
+      count: filteredWithdrawals.length,
+      metadata: {
+        sideHustle: sideHustle || null,
+        originalCount: withdrawals.length,
+        filteredCount: filteredWithdrawals.length
+      }
     });
   } catch (error) {
     console.error('Error fetching withdrawals:', error);
