@@ -104,15 +104,8 @@
   backdrop-filter: blur(10px);
 }
 
-.stats-container {
-  display: flex;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-right: 6rem; /* Make space for the dragon */
-}
-
 .stat-item {
-  flex: 1;
+  margin-bottom: 1rem;
 }
 
 .stat-label {
