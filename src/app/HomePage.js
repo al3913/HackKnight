@@ -7,7 +7,7 @@ import './login.css';
 const HomePage = () => {
   const [financialData, setFinancialData] = useState({
     totalAmount: 0,
-    totalExpense: 1187.40,
+    totalExpense: 0,
     status: ''
   });
 
