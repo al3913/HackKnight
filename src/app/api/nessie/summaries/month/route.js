@@ -7,30 +7,34 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const sideHustle = searchParams.get('sideHustle');
 
-    // Set to start of one month ago from current date
+    // Set to exactly one month ago from current date
     const now = new Date();
+    // Ensure we're at the current date in local time
+    now.setHours(23, 59, 59, 999); // End of current day
+
     const startDate = new Date(now);
-    startDate.setMonth(now.getMonth() - 1); // Go back one month
-    // Keep the same day of month, just change the month
-    
+    startDate.setMonth(startDate.getMonth() - 1);
+    startDate.setHours(0, 0, 0, 0);
+
     const { allTransactions, now: currentTime, metadata: transactionMetadata } = 
       await fetchTransactions(startDate, sideHustle);
 
-    // Initialize daily data from start date to current date
     const timeSeriesData = {};
     let currentDate = new Date(startDate);
     
-    while (currentDate <= now) {
-      const key = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const endDate = new Date(now);
+    endDate.setHours(23, 59, 59, 999);
+    
+    while (currentDate <= endDate) {
+      const key = currentDate.toISOString().slice(0, 10);
       timeSeriesData[key] = 0.00;
-      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
     }
 
-    // Calculate running totals
     let runningTotal = 0;
     allTransactions.forEach(transaction => {
       const date = new Date(transaction.transaction_date);
-      const key = date.toISOString().split('T')[0];
+      const key = date.toISOString().slice(0, 10);
       
       if (timeSeriesData.hasOwnProperty(key)) {
         runningTotal = Number((runningTotal + transaction.amount).toFixed(2));
@@ -38,7 +42,6 @@ export async function GET(request) {
       }
     });
 
-    // Populate running totals for days without transactions
     let lastTotal = 0;
     Object.keys(timeSeriesData).sort().forEach(date => {
       if (timeSeriesData[date] === 0 && lastTotal !== 0) {
@@ -51,8 +54,8 @@ export async function GET(request) {
       timeSeriesData,
       metadata: {
         ...transactionMetadata,
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: now.toISOString().split('T')[0],
+        startDate: startDate.toISOString().slice(0, 10),
+        endDate: now.toISOString().slice(0, 10),
         currentDay: now.getDate(),
         daysInRange: Object.keys(timeSeriesData).length,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
