@@ -207,12 +207,20 @@
   margin: 0.25rem 0;
   opacity: 0;
   animation: welcome-fade-in 1.2s ease-out 0.4s forwards;
+  line-height: 1.2;
+  height: 4rem;
+  display: flex;
+  align-items: center;
 }
 
 .stat-value.expense {
   color: #00D09E;
   -webkit-text-stroke: 0;
   animation: welcome-fade-in 1.2s ease-out 0.8s forwards;
+  line-height: 1.2;
+  height: 4rem;
+  display: flex;
+  align-items: center;
 }
 
 .stat-status {
