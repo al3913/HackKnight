@@ -71,21 +71,18 @@ export async function GET() {
     // Initialize data structures
     const pieChartData = {
       income: {},    // Total deposits
-      expenses: {},  // Total withdrawals
-      net: {}       // Net income (deposits - withdrawals)
+      expenses: {}   // Total withdrawals
     };
     
     // Initialize totals for each side hustle
     sideHustles.forEach(hustle => {
       pieChartData.income[hustle] = 0;
       pieChartData.expenses[hustle] = 0;
-      pieChartData.net[hustle] = 0;
     });
     
     // Add "Other" category
     pieChartData.income["Other"] = 0;
     pieChartData.expenses["Other"] = 0;
-    pieChartData.net["Other"] = 0;
     
     // Calculate totals for each side hustle
     allTransactions.forEach(transaction => {
@@ -106,10 +103,8 @@ export async function GET() {
       
       if (transaction.type === 'deposit') {
         pieChartData.income[matchingHustle] += amount;
-        pieChartData.net[matchingHustle] += amount;
       } else {
         pieChartData.expenses[matchingHustle] += amount;
-        pieChartData.net[matchingHustle] -= amount;
       }
     });
 
@@ -118,15 +113,13 @@ export async function GET() {
     // Calculate totals
     const totals = {
       totalIncome: Object.values(pieChartData.income).reduce((a, b) => a + b, 0),
-      totalExpenses: Object.values(pieChartData.expenses).reduce((a, b) => a + b, 0),
-      totalNet: Object.values(pieChartData.net).reduce((a, b) => a + b, 0)
+      totalExpenses: Object.values(pieChartData.expenses).reduce((a, b) => a + b, 0)
     };
 
     // Calculate percentages
     const percentages = {
       income: {},
-      expenses: {},
-      net: {}
+      expenses: {}
     };
 
     Object.entries(pieChartData.income).forEach(([hustle, amount]) => {
@@ -135,11 +128,6 @@ export async function GET() {
 
     Object.entries(pieChartData.expenses).forEach(([hustle, amount]) => {
       percentages.expenses[hustle] = ((amount / totals.totalExpenses) * 100).toFixed(2);
-    });
-
-    Object.entries(pieChartData.net).forEach(([hustle, amount]) => {
-      const absTotal = Math.abs(totals.totalNet);
-      percentages.net[hustle] = ((Math.abs(amount) / absTotal) * 100).toFixed(2);
     });
 
     // Return processed data
