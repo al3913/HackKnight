@@ -13,13 +13,166 @@
 .home-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
   min-height: 100vh;
   background: linear-gradient(to bottom, #E8F7D6, #7DDBA3);
   position: relative;
   overflow: hidden;
-  padding: 2rem 1rem 8rem 1rem;
+  padding: 1rem;
+}
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0;
+  z-index: 2;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.menu-icon {
+  width: 24px;
+  height: 3px;
+  background: #1a3b1a;
+  position: relative;
+}
+
+.menu-icon::before,
+.menu-icon::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 3px;
+  background: #1a3b1a;
+  left: 0;
+}
+
+.menu-icon::before {
+  top: -8px;
+}
+
+.menu-icon::after {
+  bottom: -8px;
+}
+
+.header-icons {
+  display: flex;
+  gap: 1rem;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #1a3b1a;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.welcome-section {
+  margin: 1rem 0;
+  z-index: 2;
+}
+
+.welcome-section h1 {
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 2rem;
+  color: #1a3b1a;
+  margin: 0;
+}
+
+.welcome-section p {
+  font-size: 1rem;
+  color: #1a3b1a;
+  margin: 0.25rem 0 0 0;
+  opacity: 0.8;
+}
+
+.stats-section {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.stats-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-right: 6rem; /* Make space for the dragon */
+}
+
+.stat-item {
+  flex: 1;
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1a3b1a;
+  font-size: 0.9rem;
+}
+
+.checkmark {
+  color: #227C72;
+}
+
+.stat-value {
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 2rem;
+  color: #1a3b1a;
+  margin: 0.25rem 0;
+}
+
+.stat-value.expense {
+  color: #227C72;
+}
+
+.stat-status {
+  color: #227C72;
+  font-size: 0.9rem;
+}
+
+.stats-dragon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  image-rendering: pixelated;
+}
+
+.overview-section {
+  margin-top: 2rem;
+  z-index: 2;
+}
+
+.overview-section h2 {
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.5rem;
+  color: #1a3b1a;
+  margin: 0 0 1rem 0;
+}
+
+.overview-cards {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.overview-card {
+  background: #227C72;
+  border-radius: 1.5rem;
+  height: 200px;
 }
 
 .logo-section {
@@ -68,6 +221,7 @@
   transition: box-shadow 0.3s ease;
   margin-top: -1rem;
 }
+
 .signup-button {
   width: 100%;
   padding: 0.75rem;
