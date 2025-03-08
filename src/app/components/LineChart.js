@@ -67,18 +67,15 @@ const LineChart = ({ timeframe = 'month', refreshTrigger }) => {
         // Format labels based on timeframe
         const formattedLabels = labels.map(label => {
           if (timeframe === 'day') {
-            // Convert 24-hour format to 12-hour format
             const hour = parseInt(label);
             const ampm = hour >= 12 ? 'PM' : 'AM';
             const hour12 = hour % 12 || 12;
             return `${hour12}${ampm}`;
           } else if (timeframe === 'week') {
-            // Convert ISO date to day name
-            const date = new Date(label);
+            const date = new Date(label + 'T00:00:00');
             return date.toLocaleDateString('en-US', { weekday: 'short' });
           } else {
-            // For month view, show date
-            const date = new Date(label);
+            const date = new Date(label + 'T00:00:00');
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           }
         });
