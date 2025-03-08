@@ -1,22 +1,12 @@
 import { NextResponse } from 'next/server';
-import { fetchTransactions } from './utils';
+import { fetchTransactions } from '../utils';
 
 export async function GET(request) {
-  // Get the current URL and search params
-  const url = new URL(request.url);
-  const sideHustle = url.searchParams.get('sideHustle');
-  
-  // If we're at the base summaries endpoint, redirect to day view
-  if (url.pathname === '/api/nessie/summaries') {
-    const dayViewUrl = new URL('/api/nessie/summaries/day', request.url);
-    if (sideHustle) {
-      dayViewUrl.searchParams.set('sideHustle', sideHustle);
-    }
-    return NextResponse.redirect(dayViewUrl);
-  }
-
-  // This shouldn't be reached, but just in case, return the day view data
   try {
+    // Get sideHustle from query parameters
+    const { searchParams } = new URL(request.url);
+    const sideHustle = searchParams.get('sideHustle');
+
     // Set to start of current day in local timezone
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
@@ -68,7 +58,7 @@ export async function GET(request) {
       }
     });
   } catch (error) {
-    console.error('Error in default view:', error);
+    console.error('Error in day view:', error);
     return NextResponse.json(
       { error: error.message },
       { status: 500 }

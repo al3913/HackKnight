@@ -3,7 +3,8 @@
     "process.env.ACCOUNT_ID": [
       "Uber",
       "Etsy",
-      "Pokemon"
+      "Pokemon",
+      "Ebay"
     ]
   }
 } 
