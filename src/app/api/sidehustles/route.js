@@ -27,29 +27,29 @@ async function writeDataFile(data) {
 }
 
 // GET endpoint to retrieve sidehustles for an account
-export async function GET(request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('accountId') || process.env.ACCOUNT_ID;
-
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Account ID is required' },
-        { status: 400 }
-      );
-    }
-
+    // Use the readDataFile helper function
     const data = await readDataFile();
-    const accountHustles = data.accounts[accountId] || [];
+
+    // Get the account ID from environment variable
+    const accountId = process.env.ACCOUNT_ID;
+
+    // Get side hustles for the current account
+    const sideHustles = data.accounts[accountId] || data.accounts["process.env.ACCOUNT_ID"] || [];
 
     return NextResponse.json({
-      accountId,
-      sidehustles: accountHustles
+      sideHustles,
+      metadata: {
+        accountId,
+        count: sideHustles.length,
+        lastUpdated: new Date().toISOString()
+      }
     });
   } catch (error) {
-    console.error('Error fetching sidehustles:', error);
+    console.error('Error reading side hustles:', error);
     return NextResponse.json(
-      { error: 'Error fetching sidehustles' },
+      { error: 'Failed to fetch side hustles' },
       { status: 500 }
     );
   }
