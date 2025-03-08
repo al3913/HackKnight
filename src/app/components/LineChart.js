@@ -23,7 +23,7 @@ ChartJS.register(
   Legend
 );
 
-const LineChart = ({ timeframe = 'month', refreshTrigger }) => {
+const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: []
@@ -34,7 +34,10 @@ const LineChart = ({ timeframe = 'month', refreshTrigger }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/nessie/summaries/${timeframe}`);
+        const url = sideHustle 
+          ? `/api/nessie/summaries/${timeframe}?sideHustle=${sideHustle}`
+          : `/api/nessie/summaries/${timeframe}`;
+        const response = await fetch(url);
         const data = await response.json();
 
         const timeSeriesData = data.timeSeriesData;
@@ -101,7 +104,7 @@ const LineChart = ({ timeframe = 'month', refreshTrigger }) => {
     };
 
     fetchData();
-  }, [timeframe, refreshTrigger]);
+  }, [timeframe, refreshTrigger, sideHustle]);
 
   const options = {
     responsive: true,

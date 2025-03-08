@@ -14,6 +14,7 @@ import {
   Legend,
   ArcElement
 } from 'chart.js';
+import LineChart from '../components/LineChart';
 
 ChartJS.register(
   CategoryScale,
@@ -33,6 +34,8 @@ const QuestsPage = () => {
   const [hustleData, setHustleData] = useState(null);
   const [suggestions, setSuggestions] = useState('');
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [activeTimeframe, setActiveTimeframe] = useState('day');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const router = useRouter();
 
   // Fetch available side hustles
@@ -82,7 +85,7 @@ const QuestsPage = () => {
       
       setLoading(true);
       try {
-        // Fetch deposits and withdrawals
+        // Fetch deposits and withdrawals for pie chart
         const [depositsRes, withdrawalsRes] = await Promise.all([
           fetch(`/api/nessie/deposits?sideHustle=${selectedHustle}`),
           fetch(`/api/nessie/withdrawals?sideHustle=${selectedHustle}`)
@@ -91,51 +94,19 @@ const QuestsPage = () => {
         const deposits = await depositsRes.json();
         const withdrawals = await withdrawalsRes.json();
 
-        console.log('Deposits:', deposits);
-        console.log('Withdrawals:', withdrawals);
-
-        // Fetch daily summaries separately to debug
-        console.log('Fetching daily summaries...');
-        const dailyRes = await fetch(`/api/nessie/summaries/day?sideHustle=${selectedHustle}`);
-        console.log('Daily summaries response:', dailyRes);
-        const dailySummary = await dailyRes.json();
-        console.log('Daily Summary:', dailySummary);
-
-        // Use the filtered data directly from the API
-        const filteredDeposits = deposits?.data || [];
-        const filteredWithdrawals = withdrawals?.data || [];
+        // Use the filtered data for pie chart
+        const filteredDeposits = deposits?.deposits || [];
+        const filteredWithdrawals = withdrawals?.withdrawals || [];
 
         // Use totalAmount from API response
         const totalIncome = deposits?.totalAmount || 0;
         const totalExpenses = withdrawals?.totalAmount || 0;
         const netIncome = totalIncome - Math.abs(totalExpenses);
 
-        // Use daily data from summaries API
-        const dailyData = {};
-        (dailySummary?.data || []).forEach(day => {
-          dailyData[day.date] = day.netAmount || 0;
-        });
-
-        // Sort dates and ensure continuous dates
-        const dates = Object.keys(dailyData).sort();
-        const continuousData = {};
-        if (dates.length > 0) {
-          const startDate = new Date(dates[0]);
-          const endDate = new Date(dates[dates.length - 1]);
-          let currentDate = new Date(startDate);
-
-          while (currentDate <= endDate) {
-            const dateStr = currentDate.toISOString().split('T')[0];
-            continuousData[dateStr] = dailyData[dateStr] || 0;
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
-        }
-
         setHustleData({
           totalIncome,
           totalExpenses,
           netIncome,
-          dailyData: continuousData,
           deposits: filteredDeposits,
           withdrawals: filteredWithdrawals
         });
@@ -159,18 +130,6 @@ const QuestsPage = () => {
       backgroundColor: ['#227C72', '#00D09E'],
       borderColor: ['rgba(255, 255, 255, 0.5)'],
       borderWidth: 2,
-    }]
-  } : null;
-
-  const lineChartData = hustleData ? {
-    labels: Object.keys(hustleData.dailyData || {}),
-    datasets: [{
-      label: 'Daily Earnings',
-      data: Object.values(hustleData.dailyData || {}),
-      borderColor: '#227C72',
-      backgroundColor: 'rgba(34, 124, 114, 0.1)',
-      tension: 0.4,
-      fill: true,
     }]
   } : null;
 
@@ -250,9 +209,33 @@ const QuestsPage = () => {
             </div>
 
             <div className="analytics-card">
-              <h3>Daily Earnings</h3>
+              <h3>Earnings Over Time</h3>
+              <div className="timeframe-buttons">
+                <button 
+                  className={`timeframe-button ${activeTimeframe === 'day' ? 'active' : ''}`}
+                  onClick={() => setActiveTimeframe('day')}
+                >
+                  Daily
+                </button>
+                <button 
+                  className={`timeframe-button ${activeTimeframe === 'week' ? 'active' : ''}`}
+                  onClick={() => setActiveTimeframe('week')}
+                >
+                  Weekly
+                </button>
+                <button 
+                  className={`timeframe-button ${activeTimeframe === 'month' ? 'active' : ''}`}
+                  onClick={() => setActiveTimeframe('month')}
+                >
+                  Monthly
+                </button>
+              </div>
               <div className="chart-container line">
-                {lineChartData && <Line data={lineChartData} options={chartOptions} />}
+                <LineChart 
+                  timeframe={activeTimeframe} 
+                  refreshTrigger={refreshTrigger} 
+                  sideHustle={selectedHustle}
+                />
               </div>
             </div>
 
@@ -431,6 +414,34 @@ const QuestsPage = () => {
           color: #227C72;
           font-style: italic;
           padding: 1rem;
+        }
+
+        .timeframe-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .timeframe-button {
+          padding: 0.5rem 1rem;
+          border: 2px solid #227C72;
+          background: rgba(255, 255, 255, 0.5);
+          color: #227C72;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 0.9rem;
+          transition: all 0.2s ease;
+        }
+
+        .timeframe-button:hover {
+          background: rgba(34, 124, 114, 0.1);
+        }
+
+        .timeframe-button.active {
+          background: #227C72;
+          color: white;
         }
       `}</style>
     </div>
