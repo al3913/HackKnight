@@ -59,12 +59,15 @@
     border-radius: 1rem;
     font-size: 0.9rem;
     line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .botMessage {
     background-color: #fff;
     color: #333;
     border-top-left-radius: 0.3rem;
+    font-family: 'Courier New', monospace;
 }
 
 .userMessage {
