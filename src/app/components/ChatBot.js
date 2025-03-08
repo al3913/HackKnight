@@ -4,8 +4,11 @@ import { useRouter } from 'next/navigation';
 import styles from './ChatBot.module.css';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+
+
 // Define allowed topics and keywords for financial literacy
 const allowedTopics = {
+    'transactions': ['transaction', 'spend', 'spent', 'spending', 'purchase', 'bought', 'buy', 'payment', 'paid', 'deposit', 'withdrawal', 'money'],
     'investing': ['stocks', 'bonds', 'mutual funds', 'etf', 'investment', 'portfolio', 'market', 'trading', 'dividend', 'returns'],
     'personal_finance': ['budget', 'saving', 'income', 'expense', 'debt', 'credit', 'loan', 'mortgage', 'banking', 'interest'],
     'financial_planning': ['retirement', 'insurance', 'tax', 'estate', 'planning', 'goals', 'emergency fund', 'wealth', 'net worth'],
@@ -36,34 +39,102 @@ const formatResponse = (text) => {
     }).join('\n');
 };
 
+// Function to calculate spending patterns and insights
+const analyzeTransactions = (transactions) => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Filter transactions by time periods
+    const weeklyTransactions = transactions.filter(t => new Date(t.transaction_date) >= oneWeekAgo);
+    const monthlyTransactions = transactions.filter(t => new Date(t.transaction_date) >= oneMonthAgo);
+
+    // Calculate spending by type
+    const categorizeTransactions = (txns) => {
+        return txns.reduce((acc, t) => {
+            const description = t.description.toLowerCase();
+            let category = 'other';
+            
+            if (description.includes('food') || description.includes('restaurant') || description.includes('grocery')) {
+                category = 'food';
+            } else if (description.includes('transport') || description.includes('gas') || description.includes('uber')) {
+                category = 'transportation';
+            } else if (description.includes('bill') || description.includes('utility') || description.includes('rent')) {
+                category = 'bills';
+            } else if (description.includes('entertainment') || description.includes('movie') || description.includes('game')) {
+                category = 'entertainment';
+            }
+
+            if (!acc[category]) {
+                acc[category] = { total: 0, count: 0 };
+            }
+            acc[category].total += t.amount;
+            acc[category].count += 1;
+            return acc;
+        }, {});
+    };
+
+    const weeklySpendingByCategory = categorizeTransactions(weeklyTransactions.filter(t => t.type === 'withdrawal'));
+    const monthlySpendingByCategory = categorizeTransactions(monthlyTransactions.filter(t => t.type === 'withdrawal'));
+
+    return {
+        weekly: {
+            spending: weeklyTransactions.filter(t => t.type === 'withdrawal').reduce((sum, t) => sum + t.amount, 0),
+            deposits: weeklyTransactions.filter(t => t.type === 'deposit').reduce((sum, t) => sum + t.amount, 0),
+            categories: weeklySpendingByCategory,
+            transactionCount: weeklyTransactions.length
+        },
+        monthly: {
+            spending: monthlyTransactions.filter(t => t.type === 'withdrawal').reduce((sum, t) => sum + t.amount, 0),
+            deposits: monthlyTransactions.filter(t => t.type === 'deposit').reduce((sum, t) => sum + t.amount, 0),
+            categories: monthlySpendingByCategory,
+            transactionCount: monthlyTransactions.length
+        },
+        recentTransactions: transactions.slice(0, 5),
+        trends: {
+            averageTransactionAmount: transactions.reduce((sum, t) => sum + t.amount, 0) / transactions.length,
+            mostFrequentCategory: Object.entries(monthlySpendingByCategory)
+                .sort((a, b) => b[1].count - a[1].count)[0]?.[0] || 'none'
+        }
+    };
+};
+
 const ChatBot = () => {
     const [messages, setMessages] = useState([
-        { text: 'Hello! I\'m your financial literacy assistant, ready to help you understand personal finance, investing, financial planning, business finance, and cryptocurrency. How can I assist you with your financial questions today?', isBot: true, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+        { text: 'Hello! I\'m your financial literacy assistant. I can help you understand your spending patterns and provide financial advice. Feel free to ask about your recent transactions or any financial topics!', isBot: true, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [chat, setChat] = useState(null);
+    const [transactionData, setTransactionData] = useState(null);
     const messagesEndRef = useRef(null);
     const router = useRouter();
 
     useEffect(() => {
-        // Initialize Gemini chat
-        const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        const newChat = model.startChat({
-            history: [
-                {
-                    role: "user",
-                    parts: [{ text: "Hello" }],
-                },
-                {
-                    role: "model",
-                    parts: [{ text: "Hello! I'm your financial literacy assistant, ready to help you understand personal finance, investing, financial planning, business finance, and cryptocurrency. How can I assist you with your financial questions today?" }],
-                },
-            ],
-        });
-        
-        setChat(newChat);
+        const initializeChat = async () => {
+            // Initialize Gemini chat
+            const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            
+            const newChat = model.startChat({
+                history: [
+                    {
+                        role: "user",
+                        parts: [{ text: "Hello" }],
+                    },
+                    {
+                        role: "model",
+                        parts: [{ text: "Hello! I'm your financial literacy assistant. I can help you understand your spending patterns and provide financial advice. Feel free to ask about your recent transactions or any financial topics!" }],
+                    },
+                ],
+            });
+            
+            setChat(newChat);
+
+            // Fetch transaction data immediately
+            await fetchTransactionData();
+        };
+
+        initializeChat();
     }, []);
 
     const scrollToBottom = () => {
@@ -74,13 +145,47 @@ const ChatBot = () => {
         scrollToBottom();
     }, [messages]);
 
+    const fetchTransactionData = async () => {
+        try {
+            const [depositsRes, withdrawalsRes] = await Promise.all([
+                fetch('/api/nessie/deposits'),
+                fetch('/api/nessie/withdrawals')
+            ]);
+
+            const depositsData = await depositsRes.json();
+            const withdrawalsData = await withdrawalsRes.json();
+
+            // Combine and format transactions
+            const allTransactions = [
+                ...depositsData.deposits.map(d => ({
+                    ...d,
+                    type: 'deposit',
+                    amount: d.amount
+                })),
+                ...withdrawalsData.withdrawals.map(w => ({
+                    ...w,
+                    type: 'withdrawal',
+                    amount: w.amount
+                }))
+            ];
+
+            // Sort by date
+            allTransactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+
+            // Analyze transactions
+            const analysis = analyzeTransactions(allTransactions);
+            setTransactionData(analysis);
+        } catch (error) {
+            console.error('Error fetching transaction data:', error);
+        }
+    };
+
     const handleSend = async () => {
         if (!inputMessage.trim()) return;
         if (!chat) return;
 
         const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // Add user message
         setMessages(prev => [...prev, { 
             text: inputMessage, 
             isBot: false,
@@ -93,15 +198,62 @@ const ChatBot = () => {
         try {
             if (!isRelevantTopic(userMessage)) {
                 setMessages(prev => [...prev, {
-                    text: 'I apologize, but I can only provide information about financial topics such as investing, personal finance, financial planning, business finance, and cryptocurrency. Could you please ask something related to these areas?',
+                    text: 'I apologize, but I can only provide information about financial topics such as your transactions, spending, investments, personal finance, financial planning, business finance, and cryptocurrency. Could you please ask something related to these areas?',
                     isBot: true,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 }]);
                 return;
             }
 
-            const result = await chat.sendMessage(userMessage);
-            const response = formatResponse(result.response.text());
+            let prompt = userMessage;
+            if (userMessage.toLowerCase().match(/transaction|spend|spent|payment|deposit|withdrawal|budget|expense|money/)) {
+                // Fetch the latest transaction data from the summaries endpoint
+                const summaryRes = await fetch('/api/nessie/summaries');
+                const summaryData = await summaryRes.json();
+
+                prompt = `You are a financial assistant providing brief, focused responses. Be concise and direct.
+Keep each section to 2-3 short bullet points maximum. No markdown formatting.
+
+Here is your financial data:
+
+Transaction Summary:
+Total transactions: ${summaryData.metadata.totalTransactions}
+Deposits: ${summaryData.metadata.depositsCount}
+Withdrawals: ${summaryData.metadata.withdrawalsCount}
+
+Time-based Analysis:
+${Object.entries(summaryData.timeSeriesData)
+    .map(([hour, amount]) => `Hour ${hour}: $${amount.toFixed(2)}`)
+    .join('\n')}
+
+Based on this data, answer the following question: ${userMessage}
+
+Format your response in 4 short sections:
+
+1. Quick Answer (1-2 sentences)
+
+2. Key Patterns (2-3 bullet points)
+
+3. Quick Advice (2-3 bullet points)
+
+4. Main Concerns (1-2 bullet points)
+
+Keep each bullet point to one line. Be direct and specific.`;
+            }
+
+            const result = await chat.sendMessage(prompt);
+            const response = formatResponse(result.response.text())
+                // Remove any markdown formatting
+                .replace(/\*\*/g, '')
+                .replace(/\#/g, '')
+                .replace(/\[|\]/g, '')
+                // Ensure proper spacing but not too much
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line) // Remove empty lines
+                .join('\n\n')
+                // Reduce multiple newlines to maximum of two
+                .replace(/\n{3,}/g, '\n\n');
             
             setMessages(prev => [...prev, {
                 text: response,
