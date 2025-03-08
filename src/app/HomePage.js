@@ -7,25 +7,29 @@ import './login.css';
 const HomePage = () => {
   const [financialData, setFinancialData] = useState({
     totalAmount: 0,
-    totalExpense: 0,
-    status: 'Looking Good!'
+    totalExpense: 1187.40,
+    status: ''
   });
 
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
-        // Fetch deposits (revenue)
-        const depositResponse = await fetch('/api/nessie/deposits');
-        const depositData = await depositResponse.json();
+        const response = await fetch('/api/nessie/deposits');
+        const data = await response.json();
+        const totalAmount = data.totalAmount;
         
-        // Fetch withdrawals (expenses)
-        const withdrawalResponse = await fetch('/api/nessie/withdrawals');
-        const withdrawalData = await withdrawalResponse.json();
+        // Calculate status based on revenue vs expense comparison
+        let status;
+        if (totalAmount > financialData.totalExpense) {
+          status = 'Looking Good!';
+        } else {
+          status = 'Visit the Help tab for financial tips';
+        }
 
         setFinancialData(prevData => ({
           ...prevData,
-          totalAmount: depositData.totalAmount,
-          totalExpense: withdrawalData.totalAmount
+          totalAmount: totalAmount,
+          status: status
         }));
       } catch (error) {
         console.error('Error fetching financial data:', error);
@@ -33,7 +37,7 @@ const HomePage = () => {
     };
 
     fetchFinancialData();
-  }, []);
+  }, [financialData.totalExpense]);
 
   return (
     <div className="home-container">
@@ -42,33 +46,64 @@ const HomePage = () => {
           <div className="menu-icon"></div>
         </button>
         <div className="header-icons">
-          <button className="icon-button">ⓘ</button>
-          <button className="icon-button">⚙️</button>
+          <button className="icon-button">
+            <Image
+              src="/info.png"
+              alt="Info"
+              width={24}
+              height={24}
+              className="info-icon"
+            />
+          </button>
+          <button className="icon-button">
+            <Image
+              src="/settings.png"
+              alt="Settings"
+              width={24}
+              height={24}
+              className="settings-icon"
+            />
+          </button>
         </div>
       </header>
 
       <div className="welcome-section">
         <h1>Hi, Welcome Back!</h1>
-        <p>Good Morning</p>
+        <p>Good Morning!</p>
       </div>
 
       <div className="stats-section">
         <div className="stats-container">
           <div className="stat-item">
             <div className="stat-label">
+              <Image
+                src="/Income.png"
+                alt="Income"
+                width={11}
+                height={11}
+                className="stat-icon"
+              />
               <span>Total Revenue</span>
-              <span className="checkmark">✓</span>
             </div>
             <div className="stat-value">${financialData.totalAmount.toFixed(2)}</div>
             <div className="stat-status">{financialData.status}</div>
           </div>
           <div className="stat-item">
-            <div className="stat-label">Total Expense</div>
+            <div className="stat-label">
+              <Image
+                src="/Expense.png"
+                alt="Expense"
+                width={11}
+                height={11}
+                className="stat-icon"
+              />
+              <span>Total Expense</span>
+            </div>
             <div className="stat-value expense">-${financialData.totalExpense.toFixed(2)}</div>
           </div>
         </div>
         <Image
-          src="/dragon2.png"
+          src="/dragon1.png"
           alt="Dragon"
           width={100}
           height={100}
