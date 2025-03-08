@@ -1,8 +1,15 @@
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import './login.css';
 
 const LoginPage = () => {
+  const router = useRouter();
+
+  const handleLogin = () => {
+    router.push('/home');
+  };
+
   return (
     <div className="login-container">
       <Image
@@ -51,7 +58,7 @@ const LoginPage = () => {
       </div>
 
       <div className="button-container">
-        <button className="login-button">Login</button>
+        <button className="login-button" onClick={handleLogin}>Login</button>
         <button className="signup-button">Signup</button>
       </div>
 
