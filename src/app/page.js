@@ -1,6 +1,6 @@
 'use client';
-import LoginPage from './LoginPage';
+import ChatBot from './components/ChatBot';
 
 export default function Home() {
-  return <LoginPage />;
+  return <ChatBot />;
 } 
