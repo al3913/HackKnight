@@ -27,37 +27,63 @@ const PieChart = ({ refreshTrigger }) => {
     datasets: []
   });
   const [loading, setLoading] = useState(true);
+  const [apiData, setApiData] = useState(null);
+  const [viewType, setViewType] = useState('income'); // 'income', 'expenses', or 'net'
 
   const fetchPieChartData = async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/Pichart');
       const data = await response.json();
-      
-      const colors = [
-        '#227C72', // Deep teal
-        '#00D09E', // Bright turquoise
-        '#47C9CA', // Medium teal
-        '#113D21', // Dark forest green
-        '#34D399', // Bright emerald
-        '#059669'  // Deep emerald
-      ];
-
-      setChartData({
-        labels: data.pieChartData.map(item => item.description),
-        datasets: [{
-          data: data.pieChartData.map(item => item.amount),
-          backgroundColor: colors,
-          borderColor: 'rgba(255, 255, 255, 0.5)',
-          borderWidth: 2,
-        }]
-      });
+      setApiData(data);
+      updateChartData(data, viewType);
     } catch (error) {
       console.error('Error fetching pie chart data:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const updateChartData = (data, type) => {
+    const colors = [
+      '#227C72', // Deep teal
+      '#00D09E', // Bright turquoise
+      '#47C9CA', // Medium teal
+      '#113D21', // Dark forest green
+      '#34D399', // Bright emerald
+      '#059669', // Deep emerald
+      '#10B981', // Emerald
+      '#064E3B'  // Dark teal
+    ];
+
+    // Get the data for the current view type
+    const categoryData = data.data[type];
+    
+    // Filter out zero values and sort by amount
+    const entries = Object.entries(categoryData)
+      .filter(([_, value]) => value > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    const labels = entries.map(([label]) => label);
+    const values = entries.map(([_, value]) => value);
+
+    setChartData({
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderWidth: 2,
+      }]
+    });
+  };
+
+  // Update chart when viewType changes
+  useEffect(() => {
+    if (apiData) {
+      updateChartData(apiData, viewType);
+    }
+  }, [viewType]);
 
   // Fetch data whenever refreshTrigger changes
   useEffect(() => {
@@ -70,7 +96,9 @@ const PieChart = ({ refreshTrigger }) => {
     plugins: {
       title: {
         display: true,
-        text: 'Total Revenue Spread',
+        text: viewType === 'income' ? 'Side Hustle Income Distribution' :
+              viewType === 'expenses' ? 'Side Hustle Expenses Distribution' :
+              'Side Hustle Net Income Distribution',
         color: '#227C72',
         font: {
           family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
@@ -101,8 +129,8 @@ const PieChart = ({ refreshTrigger }) => {
         callbacks: {
           label: (context) => {
             const value = context.raw;
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
+            const label = context.label;
+            const percentage = apiData?.percentages[viewType][label];
             return `$${value.toFixed(2)} (${percentage}%)`;
           }
         },
@@ -118,6 +146,26 @@ const PieChart = ({ refreshTrigger }) => {
     }
   };
 
+  const TabButton = ({ type, label }) => (
+    <button
+      onClick={() => setViewType(type)}
+      style={{
+        padding: '0.5rem 1rem',
+        margin: '0 0.25rem',
+        backgroundColor: viewType === type ? '#227C72' : 'transparent',
+        color: viewType === type ? 'white' : '#227C72',
+        border: '2px solid #227C72',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+        fontWeight: '500',
+        transition: 'all 0.2s'
+      }}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div style={{ 
       height: '100%', 
@@ -129,14 +177,45 @@ const PieChart = ({ refreshTrigger }) => {
       alignItems: 'center',
       minHeight: '380px'
     }}>
+      <div style={{ marginBottom: '1rem' }}>
+        <TabButton type="income" label="Income" />
+        <TabButton type="expenses" label="Expenses" />
+        <TabButton type="net" label="Net Income" />
+      </div>
+      
       {loading ? (
-        <div>Loading chart data...</div>
+        <div style={{ 
+          color: '#227C72',
+          fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+        }}>
+          Loading chart data...
+        </div>
       ) : chartData.labels.length > 0 ? (
         <div style={{ width: '90%', height: '90%' }}>
           <Pie data={chartData} options={options} />
+          {apiData && (
+            <div style={{
+              textAlign: 'center',
+              marginTop: '1rem',
+              fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+              color: '#227C72'
+            }}>
+              <strong>
+                Total: $
+                {Math.abs(viewType === 'income' ? apiData.totals.totalIncome :
+                         viewType === 'expenses' ? apiData.totals.totalExpenses :
+                         apiData.totals.totalNet).toFixed(2)}
+              </strong>
+            </div>
+          )}
         </div>
       ) : (
-        <div>No data found</div>
+        <div style={{ 
+          color: '#227C72',
+          fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+        }}>
+          No data found
+        </div>
       )}
     </div>
   );
