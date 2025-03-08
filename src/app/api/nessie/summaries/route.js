@@ -12,21 +12,35 @@ export async function GET(request) {
     
     switch (view) {
       case 'day':
-        startDate.setDate(now.getDate() - 1);
+        // Set to start of current day
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
         break;
       case 'week':
-        startDate.setDate(now.getDate() - 7);
+        // Set to Sunday of current week
+        const currentDay = now.getDay();
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - currentDay); // Go back to Sunday
+        startDate.setHours(0, 0, 0, 0);
         break;
       case 'month':
-        startDate.setMonth(now.getMonth() - 1);
+        // Set to start of current month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
         break;
       default:
-        startDate.setMonth(now.getMonth() - 1); // default to month
+        startDate.setMonth(now.getMonth() - 1);
     }
 
-    // Reset hours to start and end of day for accurate comparison
-    startDate.setHours(0, 0, 0, 0);
-    now.setHours(23, 59, 59, 999);
+    // For accurate comparison, only set end time to end of day if it's not today
+    const isToday = (date) => {
+      const today = new Date();
+      return date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
+    };
+
+    if (!isToday(now)) {
+      now.setHours(23, 59, 59, 999);
+    }
 
     // Build the URLs using environment variables
     const baseUrl = 'http://api.nessieisreal.com';  // Changed back to http as per API docs
@@ -143,58 +157,105 @@ export async function GET(request) {
       if (view === 'week') {
         // Initialize days of the week
         const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        timeSeriesData = daysOfWeek.reduce((acc, day) => ({ ...acc, [day]: 0 }), {});
+        timeSeriesData = daysOfWeek.reduce((acc, day) => ({ ...acc, [day]: 0.00 }), {});
 
-        // Calculate running totals for each day
+        // Get current day for limiting the view
+        const currentDayIndex = now.getDay();
+
+        // Calculate running totals only up to current day
         allTransactions.forEach(transaction => {
           const date = new Date(transaction.transaction_date);
-          const dayName = daysOfWeek[date.getDay()];
-          runningTotal += transaction.amount;
-          timeSeriesData[dayName] = runningTotal;
+          const transactionDayIndex = date.getDay();
+          
+          // Only include transactions up to current day
+          if (transactionDayIndex <= currentDayIndex) {
+            const dayName = daysOfWeek[transactionDayIndex];
+            runningTotal = Number((runningTotal + transaction.amount).toFixed(2));
+            timeSeriesData[dayName] = runningTotal;
+          }
+        });
+
+        // Only populate running totals up to current day
+        let lastTotal = 0;
+        daysOfWeek.forEach((day, index) => {
+          if (index <= currentDayIndex) {
+            if (timeSeriesData[day] === 0 && lastTotal !== 0) {
+              timeSeriesData[day] = lastTotal;
+            }
+            lastTotal = timeSeriesData[day];
+          }
         });
 
       } else if (view === 'day') {
         // Initialize 24 hours
         timeSeriesData = Array.from({ length: 24 }, (_, i) => {
           const hour = i.toString().padStart(2, '0');
-          return [hour, 0];
-        }).reduce((acc, [hour]) => ({ ...acc, [hour]: 0 }), {});
+          return [hour, 0.00];
+        }).reduce((acc, [hour]) => ({ ...acc, [hour]: 0.00 }), {});
 
-        // Calculate running totals for each hour
+        // Get current hour for limiting the view
+        const currentHour = now.getUTCHours();
+
+        // Calculate running totals only up to current hour
         allTransactions.forEach(transaction => {
           const date = new Date(transaction.transaction_date);
-          // Use UTC hours since the API returns UTC timestamps
-          const hour = date.getUTCHours().toString().padStart(2, '0');
-          runningTotal += transaction.amount;
-          timeSeriesData[hour] = runningTotal;
+          const transactionHour = date.getUTCHours();
+          
+          // Only include transactions up to current hour
+          if (transactionHour <= currentHour) {
+            const hour = transactionHour.toString().padStart(2, '0');
+            runningTotal = Number((runningTotal + transaction.amount).toFixed(2));
+            timeSeriesData[hour] = runningTotal;
+          }
         });
+
+        // Only populate running totals up to current hour
+        let lastTotal = 0;
+        for (let i = 0; i <= currentHour; i++) {
+          const hour = i.toString().padStart(2, '0');
+          if (timeSeriesData[hour] === 0 && lastTotal !== 0) {
+            timeSeriesData[hour] = lastTotal;
+          }
+          lastTotal = timeSeriesData[hour];
+        }
+
       } else if (view === 'month') {
-        // Initialize 4 weeks
-        timeSeriesData = {
-          'Week 1': 0,
-          'Week 2': 0,
-          'Week 3': 0,
-          'Week 4': 0
-        };
+        // Initialize weeks based on current date
+        const currentDate = now.getUTCDate();
+        const currentWeek = Math.ceil(currentDate / 7);
+        
+        // Only initialize weeks up to current week
+        timeSeriesData = Array.from({ length: currentWeek }, (_, i) => {
+          const weekNum = i + 1;
+          return [`Week ${weekNum}`, 0.00];
+        }).reduce((acc, [week]) => ({ ...acc, [week]: 0.00 }), {});
 
         // Helper function to determine which week a date falls into
         const getWeekNumber = (date) => {
-          // Get the day of the month (1-31)
           const dayOfMonth = date.getUTCDate();
-          
-          // Determine which week the day falls into
-          if (dayOfMonth <= 7) return 'Week 1';
-          if (dayOfMonth <= 14) return 'Week 2';
-          if (dayOfMonth <= 21) return 'Week 3';
-          return 'Week 4';
+          const weekNum = Math.ceil(dayOfMonth / 7);
+          return `Week ${weekNum}`;
         };
 
-        // Calculate running totals for each week
+        // Calculate running totals only up to current week
         allTransactions.forEach(transaction => {
           const date = new Date(transaction.transaction_date);
           const weekLabel = getWeekNumber(date);
-          runningTotal += transaction.amount;
-          timeSeriesData[weekLabel] = runningTotal;
+          
+          // Only include transactions up to current week
+          if (weekLabel in timeSeriesData) {
+            runningTotal = Number((runningTotal + transaction.amount).toFixed(2));
+            timeSeriesData[weekLabel] = runningTotal;
+          }
+        });
+
+        // Only populate running totals up to current week
+        let lastTotal = 0;
+        Object.keys(timeSeriesData).forEach(week => {
+          if (timeSeriesData[week] === 0 && lastTotal !== 0) {
+            timeSeriesData[week] = lastTotal;
+          }
+          lastTotal = timeSeriesData[week];
         });
       }
 
