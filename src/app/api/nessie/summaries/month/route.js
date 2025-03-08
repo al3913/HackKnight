@@ -7,20 +7,23 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const sideHustle = searchParams.get('sideHustle');
 
-    // Set to start of current month in local timezone
+    // Set to start of one month ago from current date
     const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-
+    const startDate = new Date(now);
+    startDate.setMonth(now.getMonth() - 1); // Go back one month
+    // Keep the same day of month, just change the month
+    
     const { allTransactions, now: currentTime, metadata: transactionMetadata } = 
       await fetchTransactions(startDate, sideHustle);
 
-    // Initialize daily data for the current month
+    // Initialize daily data from start date to current date
     const timeSeriesData = {};
-    for (let i = 1; i <= lastDay; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth(), i);
-      const key = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    let currentDate = new Date(startDate);
+    
+    while (currentDate <= now) {
+      const key = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
       timeSeriesData[key] = 0.00;
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
     // Calculate running totals
@@ -51,7 +54,7 @@ export async function GET(request) {
         startDate: startDate.toISOString().split('T')[0],
         endDate: now.toISOString().split('T')[0],
         currentDay: now.getDate(),
-        daysInMonth: lastDay,
+        daysInRange: Object.keys(timeSeriesData).length,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         currentTime: currentTime.toLocaleString()
       }

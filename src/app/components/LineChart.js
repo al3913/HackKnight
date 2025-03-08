@@ -34,15 +34,57 @@ const LineChart = ({ timeframe = 'month', refreshTrigger }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/nessie/summaries?view=${timeframe}`);
+        const response = await fetch(`/api/nessie/summaries/${timeframe}`);
         const data = await response.json();
 
-        const runningTotals = data.runningTotals;
-        const labels = Object.keys(runningTotals);
-        const values = Object.values(runningTotals);
+        const timeSeriesData = data.timeSeriesData;
+        let labels;
+        let values;
+
+        if (timeframe === 'day') {
+          // Get current hour (0-23)
+          const currentHour = new Date().getHours();
+          
+          // Create array of all hours from 00 to current hour
+          labels = Array.from({ length: currentHour + 1 }, (_, i) => 
+            i.toString().padStart(2, '0')
+          );
+          
+          // Map values for each hour, using the last known balance for hours with no transactions
+          let lastKnownBalance = 0;
+          values = labels.map(hour => {
+            if (timeSeriesData[hour] !== undefined) {
+              lastKnownBalance = timeSeriesData[hour];
+            }
+            return lastKnownBalance;
+          });
+        } else {
+          // For week and month views, use data as provided by the API
+          labels = Object.keys(timeSeriesData);
+          values = Object.values(timeSeriesData);
+        }
+
+        // Format labels based on timeframe
+        const formattedLabels = labels.map(label => {
+          if (timeframe === 'day') {
+            // Convert 24-hour format to 12-hour format
+            const hour = parseInt(label);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}${ampm}`;
+          } else if (timeframe === 'week') {
+            // Convert ISO date to day name
+            const date = new Date(label);
+            return date.toLocaleDateString('en-US', { weekday: 'short' });
+          } else {
+            // For month view, show date
+            const date = new Date(label);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }
+        });
 
         setChartData({
-          labels,
+          labels: formattedLabels,
           datasets: [
             {
               label: 'Balance Over Time',
