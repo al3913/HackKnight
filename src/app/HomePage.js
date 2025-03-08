@@ -12,11 +12,25 @@ const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMenuItem, setActiveMenuItem] = useState('My Wallet');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    name: 'John Smith',
+    email: 'john.smith@example.com',
+    id: '25030024'
+  });
   const menuRef = useRef(null);
   const router = useRouter();
   
   // Use the custom hook instead of local state and useEffect
   const { financialData, isLoading, error, refreshData } = useFinancialData();
+
+  // Load user profile from localStorage
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      setUserProfile(JSON.parse(savedProfile));
+    }
+  }, []);
 
   // Handle refresh for all components
   const handleRefresh = () => {
@@ -149,9 +163,9 @@ const HomePage = () => {
               className="profile-image"
             />
           </div>
-          <h2 className="profile-name">John Smith</h2>
-          <p className="profile-email">john.smith@example.com</p>
-          <p className="profile-id">ID: 25030024</p>
+          <h2 className="profile-name">{userProfile.name}</h2>
+          <p className="profile-email">{userProfile.email}</p>
+          <p className="profile-id">ID: {userProfile.id}</p>
         </div>
         <nav className="menu-items">
           {menuItems.map((item) => (
@@ -165,7 +179,47 @@ const HomePage = () => {
             </button>
           ))}
         </nav>
+        <button 
+          className="menu-item logout-button"
+          onClick={() => setShowLogoutDialog(true)}
+        >
+          <span className="menu-item-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </span>
+          <span>Logout</span>
+        </button>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutDialog && (
+        <div className="logout-dialog-overlay">
+          <div className="logout-dialog">
+            <h2>End Session</h2>
+            <p>Are you sure you want to log out?</p>
+            <div className="logout-dialog-buttons">
+              <button 
+                className="logout-dialog-button confirm"
+                onClick={() => {
+                  setShowLogoutDialog(false);
+                  router.push('/');
+                }}
+              >
+                Yes, End Session
+              </button>
+              <button 
+                className="logout-dialog-button cancel"
+                onClick={() => setShowLogoutDialog(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="welcome-section">
         <h1>Hi, Welcome Back!</h1>
