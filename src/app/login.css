@@ -520,39 +520,144 @@
   }
 }
 
+@keyframes float-cloud-5 {
+  from {
+    transform: translateX(0) scale(1.4);
+  }
+  to {
+    transform: translateX(calc(100vw + 200px)) scale(1.4);
+  }
+}
+
+@keyframes float-cloud-6 {
+  from {
+    transform: translateX(0) scale(1.9);
+  }
+  to {
+    transform: translateX(calc(100vw + 200px)) scale(1.9);
+  }
+}
+
+@keyframes float-cloud-7 {
+  from {
+    transform: translateX(0) scale(1.3);
+  }
+  to {
+    transform: translateX(calc(100vw + 200px)) scale(1.3);
+  }
+}
+
+@keyframes float-cloud-8 {
+  from {
+    transform: translateX(0) scale(1.7);
+  }
+  to {
+    transform: translateX(calc(100vw + 200px)) scale(1.7);
+  }
+}
+
 .cloud {
   position: absolute;
   z-index: 0;
+  width: 120px;
+  height: auto;
   object-fit: contain;
   pointer-events: none;
   mix-blend-mode: normal;
-  image-rendering: pixelated;
   opacity: 0.8;
   left: -100px;
 }
 
 .cloud:nth-child(1) {
-  top: 15%;
+  top: 5%;
   animation: float-cloud-1 30s linear infinite;
   transform: scale(1.8);
+  opacity: 0.7;
 }
 
 .cloud:nth-child(2) {
-  top: 8%;
+  top: 20%;
   animation: float-cloud-2 35s linear infinite;
   transform: scale(2.2);
+  opacity: 0.6;
 }
 
 .cloud:nth-child(3) {
-  top: 20%;
+  top: 35%;
   animation: float-cloud-3 32s linear infinite;
   transform: scale(1.6);
+  opacity: 0.8;
 }
 
 .cloud:nth-child(4) {
-  top: 12%;
+  top: 50%;
   animation: float-cloud-4 38s linear infinite;
   transform: scale(2.0);
+  opacity: 0.7;
+}
+
+.cloud:nth-child(5) {
+  top: 65%;
+  animation: float-cloud-5 34s linear infinite;
+  transform: scale(1.4);
+  animation-delay: 2s;
+  opacity: 0.6;
+}
+
+.cloud:nth-child(6) {
+  top: 80%;
+  animation: float-cloud-6 40s linear infinite;
+  transform: scale(1.9);
+  animation-delay: 5s;
+  opacity: 0.7;
+}
+
+.cloud:nth-child(7) {
+  top: 30%;
+  animation: float-cloud-7 36s linear infinite;
+  transform: scale(1.3);
+  animation-delay: 8s;
+  opacity: 0.8;
+}
+
+.cloud:nth-child(8) {
+  top: 18%;
+  animation: float-cloud-8 42s linear infinite;
+  transform: scale(1.7);
+  animation-delay: 12s;
+  opacity: 0.6;
+}
+
+.cloud:nth-child(9) {
+  top: 35%;
+  animation: float-cloud-1 33s linear infinite;
+  transform: scale(1.5);
+  animation-delay: 3s;
+  opacity: 0.7;
+}
+
+.cloud:nth-child(10) {
+  top: 22%;
+  animation: float-cloud-2 37s linear infinite;
+  transform: scale(1.6);
+  animation-delay: 7s;
+  opacity: 0.6;
+}
+
+.cloud:nth-child(11) {
+  top: 28%;
+  animation: float-cloud-3 39s linear infinite;
+  transform: scale(1.4);
+  animation-delay: 10s;
+  opacity: 0.8;
+}
+
+.cloud:nth-child(12) {
+  top: 15%;
+  animation: float-cloud-4 41s linear infinite;
+  transform: scale(1.8);
+  animation-delay: 15s;
+  opacity: 0.7;
 }
 
 @keyframes move-tree {

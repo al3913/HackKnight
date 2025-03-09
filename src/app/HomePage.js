@@ -448,27 +448,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
       <div className="wave-background"></div>
 
       {/* Expense Dialog */}
