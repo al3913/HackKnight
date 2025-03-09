@@ -271,7 +271,7 @@ const LoginPage = () => {
                 Your data is protected
               </p>
               <p style={{ color: '#093030', fontSize: '0.9rem', opacity: 0.8, marginBottom: '2rem' }}>
-                The app won't have access to your credentials or be able to perform any action from your account.
+                The app won&apos;t have access to your credentials or be able to perform any action from your account.
               </p>
               <div className="signup-dialog-buttons">
                 <button 

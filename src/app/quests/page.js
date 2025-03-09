@@ -263,8 +263,8 @@ const QuestsPage = () => {
           <div className="loading">Loading quest data...</div>
         ) : sideHustles.length === 0 ? (
           <div className="no-data">
-            <p>You haven't added any quests yet.</p>
-            <p>Click the "Add Quest" button to get started!</p>
+            <p>You haven&apos;t added any quests yet.</p>
+            <p>Click the &quot;Add Quest&quot; button to get started!</p>
           </div>
         ) : hustleData ? (
           <div className="quest-analytics">
