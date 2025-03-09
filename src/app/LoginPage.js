@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import './login.css';
@@ -8,7 +8,7 @@ const LoginPage = () => {
   const [showSignupDialog, setShowSignupDialog] = useState(false);
   const [showBankDialog, setShowBankDialog] = useState(false);
   const [showHustleDialog, setShowHustleDialog] = useState(false);
-  const [sideHustles, setSideHustles] = useState(['Uber', 'Etsy', 'Pokemon', 'eBay']);
+  const [sideHustles, setSideHustles] = useState([]);
   const [currentHustle, setCurrentHustle] = useState('');
   const [signupForm, setSignupForm] = useState({
     firstName: 'John',
@@ -18,6 +18,25 @@ const LoginPage = () => {
     confirmPassword: 'John12345678'
   });
   const [passwordsMatch, setPasswordsMatch] = useState(true);
+
+  // Fetch side hustles when component mounts
+  useEffect(() => {
+    const fetchSideHustles = async () => {
+      try {
+        const response = await fetch('/api/sidehustles');
+        if (response.ok) {
+          const data = await response.json();
+          setSideHustles(data.sideHustles);
+        } else {
+          console.error('Failed to fetch side hustles');
+        }
+      } catch (error) {
+        console.error('Error fetching side hustles:', error);
+      }
+    };
+
+    fetchSideHustles();
+  }, []);
 
   const handleLogin = () => {
     router.push('/home');
