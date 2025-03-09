@@ -50,8 +50,10 @@ const QuestsPage = () => {
         if (data.sideHustles.length > 0) {
           setSelectedHustle(data.sideHustles[0]);
         }
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching side hustles:', error);
+        setLoading(false);
       }
     };
     fetchSideHustles();
@@ -83,7 +85,10 @@ const QuestsPage = () => {
   // Fetch data for selected side hustle
   useEffect(() => {
     const fetchHustleData = async () => {
-      if (!selectedHustle) return;
+      if (!selectedHustle) {
+        setHustleData(null);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -114,6 +119,7 @@ const QuestsPage = () => {
         });
       } catch (error) {
         console.error('Error fetching hustle data:', error);
+        setHustleData(null);
       } finally {
         setLoading(false);
       }
@@ -152,29 +158,53 @@ const QuestsPage = () => {
     }
   };
 
-  const handleAddHustle = () => {
+  const handleAddHustle = async () => {
     if (newHustle.trim()) {
-      const updatedHustles = [...sideHustles, newHustle.trim()];
-      setSideHustles(updatedHustles);
-      // Update localStorage
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      userData.sideHustles = updatedHustles;
-      localStorage.setItem('userData', JSON.stringify(userData));
-      setNewHustle('');
-      setShowAddHustleDialog(false);
+      try {
+        const response = await fetch('/api/sidehustles', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sidehustle: newHustle.trim()
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSideHustles(data.sidehustles);
+          setSelectedHustle(newHustle.trim());
+          setNewHustle('');
+          setShowAddHustleDialog(false);
+          setRefreshTrigger(prev => prev + 1);
+        } else {
+          console.error('Failed to add side hustle');
+        }
+      } catch (error) {
+        console.error('Error adding side hustle:', error);
+      }
     }
   };
 
-  const handleDeleteHustle = (hustleToDelete) => {
-    const updatedHustles = sideHustles.filter(hustle => hustle !== hustleToDelete);
-    setSideHustles(updatedHustles);
-    // Update localStorage
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    userData.sideHustles = updatedHustles;
-    localStorage.setItem('userData', JSON.stringify(userData));
-    // If the deleted hustle was selected, select the first available hustle
-    if (selectedHustle === hustleToDelete && updatedHustles.length > 0) {
-      setSelectedHustle(updatedHustles[0]);
+  const handleDeleteHustle = async (hustleToDelete) => {
+    try {
+      const response = await fetch(`/api/sidehustles?sidehustle=${encodeURIComponent(hustleToDelete)}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSideHustles(data.sidehustles);
+        // If the deleted hustle was selected, select the first available hustle
+        if (selectedHustle === hustleToDelete && data.sidehustles.length > 0) {
+          setSelectedHustle(data.sidehustles[0]);
+        }
+      } else {
+        console.error('Failed to remove side hustle');
+      }
+    } catch (error) {
+      console.error('Error removing side hustle:', error);
     }
   };
 
@@ -197,12 +227,17 @@ const QuestsPage = () => {
               value={selectedHustle}
               onChange={(e) => setSelectedHustle(e.target.value)}
               className="hustle-select"
+              disabled={sideHustles.length === 0}
             >
-              {sideHustles.map((hustle) => (
-                <option key={hustle} value={hustle}>
-                  {hustle.charAt(0).toUpperCase() + hustle.slice(1)}
-                </option>
-              ))}
+              {sideHustles.length > 0 ? (
+                sideHustles.map((hustle) => (
+                  <option key={hustle} value={hustle}>
+                    {hustle.charAt(0).toUpperCase() + hustle.slice(1)}
+                  </option>
+                ))
+              ) : (
+                <option value="">No quests available</option>
+              )}
             </select>
             <div className="hustle-actions">
               <button 
@@ -225,6 +260,11 @@ const QuestsPage = () => {
 
         {loading ? (
           <div className="loading">Loading quest data...</div>
+        ) : sideHustles.length === 0 ? (
+          <div className="no-data">
+            <p>You haven't added any quests yet.</p>
+            <p>Click the "Add Quest" button to get started!</p>
+          </div>
         ) : hustleData ? (
           <div className="quest-analytics">
             <div className="analytics-card summary">

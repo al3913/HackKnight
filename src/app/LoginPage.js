@@ -78,15 +78,48 @@ const LoginPage = () => {
     setShowHustleDialog(true);
   };
 
-  const handleAddHustle = () => {
+  const handleAddHustle = async () => {
     if (currentHustle.trim()) {
-      setSideHustles([...sideHustles, currentHustle.trim()]);
-      setCurrentHustle('');
+      try {
+        const response = await fetch('/api/sidehustles', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sidehustle: currentHustle.trim()
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSideHustles(data.sidehustles);
+          setCurrentHustle('');
+        } else {
+          console.error('Failed to add side hustle');
+        }
+      } catch (error) {
+        console.error('Error adding side hustle:', error);
+      }
     }
   };
 
-  const handleRemoveHustle = (index) => {
-    setSideHustles(sideHustles.filter((_, i) => i !== index));
+  const handleRemoveHustle = async (index) => {
+    const hustleToRemove = sideHustles[index];
+    try {
+      const response = await fetch(`/api/sidehustles?sidehustle=${encodeURIComponent(hustleToRemove)}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSideHustles(data.sidehustles);
+      } else {
+        console.error('Failed to remove side hustle');
+      }
+    } catch (error) {
+      console.error('Error removing side hustle:', error);
+    }
   };
 
   const handleHustleSubmit = () => {

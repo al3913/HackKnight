@@ -59,24 +59,25 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { accountId = process.env.ACCOUNT_ID, sidehustle } = body;
+    const { sidehustle } = body;
 
-    if (!accountId || !sidehustle) {
+    if (!sidehustle) {
       return NextResponse.json(
-        { error: 'Account ID and sidehustle name are required' },
+        { error: 'Sidehustle name is required' },
         { status: 400 }
       );
     }
 
     const data = await readDataFile();
+    const accountKey = "process.env.ACCOUNT_ID";
 
     // Initialize account array if it doesn't exist
-    if (!data.accounts[accountId]) {
-      data.accounts[accountId] = [];
+    if (!data.accounts[accountKey]) {
+      data.accounts[accountKey] = [];
     }
 
     // Check if sidehustle already exists
-    if (data.accounts[accountId].includes(sidehustle)) {
+    if (data.accounts[accountKey].includes(sidehustle)) {
       return NextResponse.json(
         { error: 'Sidehustle already exists for this account' },
         { status: 409 }
@@ -84,12 +85,11 @@ export async function POST(request) {
     }
 
     // Add new sidehustle
-    data.accounts[accountId].push(sidehustle);
+    data.accounts[accountKey].push(sidehustle);
     await writeDataFile(data);
 
     return NextResponse.json({
-      accountId,
-      sidehustles: data.accounts[accountId]
+      sidehustles: data.accounts[accountKey]
     });
   } catch (error) {
     console.error('Error adding sidehustle:', error);
@@ -104,26 +104,26 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('accountId') || process.env.ACCOUNT_ID;
     const sidehustle = searchParams.get('sidehustle');
 
-    if (!accountId || !sidehustle) {
+    if (!sidehustle) {
       return NextResponse.json(
-        { error: 'Account ID and sidehustle name are required' },
+        { error: 'Sidehustle name is required' },
         { status: 400 }
       );
     }
 
     const data = await readDataFile();
+    const accountKey = "process.env.ACCOUNT_ID";
 
-    if (!data.accounts[accountId]) {
+    if (!data.accounts[accountKey]) {
       return NextResponse.json(
         { error: 'Account not found' },
         { status: 404 }
       );
     }
 
-    const index = data.accounts[accountId].indexOf(sidehustle);
+    const index = data.accounts[accountKey].indexOf(sidehustle);
     if (index === -1) {
       return NextResponse.json(
         { error: 'Sidehustle not found' },
@@ -132,12 +132,11 @@ export async function DELETE(request) {
     }
 
     // Remove the sidehustle
-    data.accounts[accountId].splice(index, 1);
+    data.accounts[accountKey].splice(index, 1);
     await writeDataFile(data);
 
     return NextResponse.json({
-      accountId,
-      sidehustles: data.accounts[accountId]
+      sidehustles: data.accounts[accountKey]
     });
   } catch (error) {
     console.error('Error deleting sidehustle:', error);

@@ -28,18 +28,20 @@ export async function fetchTransactions(startDate, sideHustle = null) {
   }
 
   // Fetch both deposits and withdrawals data in parallel
-  const [depositsResponse, withdrawalsResponse] = await Promise.all([
+  const [depositsResponse, withdrawalsResponse, sideHustlesResponse] = await Promise.all([
     fetch(depositsUrl),
-    fetch(withdrawalsUrl)
+    fetch(withdrawalsUrl),
+    fetch('http://localhost:3000/api/sidehustles')
   ]);
 
   // If either request failed, throw error
-  if (!depositsResponse.ok || !withdrawalsResponse.ok) {
+  if (!depositsResponse.ok || !withdrawalsResponse.ok || !sideHustlesResponse.ok) {
     throw new Error('Failed to fetch transaction data');
   }
 
   const deposits = await depositsResponse.json();
   const withdrawals = await withdrawalsResponse.json();
+  const { sideHustles } = await sideHustlesResponse.json();
 
   // Filter transactions based on the date range and side hustle name if provided
   const filterTransaction = (transaction) => {
@@ -55,10 +57,14 @@ export async function fetchTransactions(startDate, sideHustle = null) {
     if (!dateInRange) return false;
     
     if (sideHustle) {
+      // If specific side hustle is provided, filter by that
       return transaction.description.toLowerCase().includes(sideHustle.toLowerCase());
+    } else {
+      // If no specific side hustle is provided, only include transactions from valid side hustles
+      return sideHustles.some(hustle => 
+        transaction.description.toLowerCase().includes(hustle.toLowerCase())
+      );
     }
-    
-    return true;
   };
 
   const filteredDeposits = deposits.filter(filterTransaction);
@@ -90,7 +96,8 @@ export async function fetchTransactions(startDate, sideHustle = null) {
       totalTransactions: allTransactions.length,
       sideHustle: sideHustle || 'all',
       depositsCount: filteredDeposits.length,
-      withdrawalsCount: filteredWithdrawals.length
+      withdrawalsCount: filteredWithdrawals.length,
+      validSideHustles: sideHustles
     }
   };
 } 
