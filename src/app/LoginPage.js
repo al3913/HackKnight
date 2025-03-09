@@ -6,6 +6,7 @@ import './login.css';
 const LoginPage = () => {
   const router = useRouter();
   const [showSignupDialog, setShowSignupDialog] = useState(false);
+  const [showBankDialog, setShowBankDialog] = useState(false);
   const [signupForm, setSignupForm] = useState({
     firstName: 'John',
     lastName: 'Capital',
@@ -45,10 +46,15 @@ const LoginPage = () => {
       setPasswordsMatch(false);
       return;
     }
-    // Here you would typically handle the account creation
-    // For now, we'll just close the dialog
+    // Close signup dialog and show bank connection dialog
     setShowSignupDialog(false);
-    // You could also automatically log them in and redirect
+    setShowBankDialog(true);
+  };
+
+  const handleBankConnect = () => {
+    // Here you would typically handle the bank connection
+    // For now, we'll just close the dialog and redirect
+    setShowBankDialog(false);
     router.push('/home');
   };
 
@@ -178,6 +184,42 @@ const LoginPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showBankDialog && (
+        <div className="signup-dialog-overlay">
+          <div className="signup-dialog">
+            <h2>Connect Your Bank Account</h2>
+            <div className="bank-connection-content">
+              <p style={{ color: '#093030', marginBottom: '1rem' }}>
+                The app uses secure banking APIs to connect your account
+              </p>
+              <p style={{ color: '#227C72', fontWeight: 'bold', marginBottom: '1rem' }}>
+                Your data is protected
+              </p>
+              <p style={{ color: '#093030', fontSize: '0.9rem', opacity: 0.8, marginBottom: '2rem' }}>
+                The app won't have access to your credentials or be able to perform any action from your account.
+              </p>
+              <div className="signup-dialog-buttons">
+                <button 
+                  className="signup-dialog-button create valid"
+                  onClick={handleBankConnect}
+                >
+                  Continue
+                </button>
+              </div>
+              <p style={{ 
+                color: '#093030', 
+                fontSize: '0.8rem', 
+                opacity: 0.7, 
+                marginTop: '1rem',
+                textAlign: 'center' 
+              }}>
+                By continuing you are accepting our <span style={{ color: '#227C72', cursor: 'pointer' }}>Privacy Policy</span>
+              </p>
+            </div>
           </div>
         </div>
       )}
