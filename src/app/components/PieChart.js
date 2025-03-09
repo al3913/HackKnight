@@ -225,7 +225,13 @@ const PieChart = ({ refreshTrigger }) => {
       {loading ? (
         <div style={{ 
           color: '#227C72',
-          fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+          fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          marginTop: '-10rem',
+          marginLeft: '0.5rem'
         }}>
           Loading chart data...
         </div>
