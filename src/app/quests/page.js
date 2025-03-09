@@ -35,6 +35,7 @@ const QuestsPage = () => {
   const [suggestions, setSuggestions] = useState('');
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [activeTimeframe, setActiveTimeframe] = useState('day');
+  const [viewType, setViewType] = useState('gainLoss');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showAddHustleDialog, setShowAddHustleDialog] = useState(false);
   const [newHustle, setNewHustle] = useState('');
@@ -299,7 +300,8 @@ const QuestsPage = () => {
                 <h3>Earnings Over Time</h3>
                 <select 
                   className="view-type-select"
-                  defaultValue="gainLoss"
+                  value={viewType}
+                  onChange={(e) => setViewType(e.target.value)}
                 >
                   <option value="gainLoss">Gain/Loss</option>
                   <option value="gain">Gain</option>
@@ -331,6 +333,7 @@ const QuestsPage = () => {
                   timeframe={activeTimeframe} 
                   refreshTrigger={refreshTrigger} 
                   sideHustle={selectedHustle}
+                  viewType={viewType}
                 />
               </div>
             </div>

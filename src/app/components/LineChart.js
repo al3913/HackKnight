@@ -23,7 +23,7 @@ ChartJS.register(
   Legend
 );
 
-const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
+const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle, viewType = 'gainLoss' }) => {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: []
@@ -34,9 +34,19 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const url = sideHustle 
-          ? `/api/nessie/summaries/${timeframe}?sideHustle=${sideHustle}`
-          : `/api/nessie/summaries/${timeframe}`;
+        let url;
+        
+        // Choose the appropriate endpoint based on viewType
+        if (viewType === 'gainLoss') {
+          url = sideHustle 
+            ? `/api/nessie/summaries/${timeframe}?sideHustle=${sideHustle}`
+            : `/api/nessie/summaries/${timeframe}`;
+        } else if (viewType === 'gain') {
+          url = `/api/nessie/deposits/summaries/${timeframe}?sideHustle=${sideHustle}`;
+        } else { // loss
+          url = `/api/nessie/withdrawals/summaries/${timeframe}?sideHustle=${sideHustle}`;
+        }
+
         const response = await fetch(url);
         const data = await response.json();
 
@@ -83,11 +93,15 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
           }
         });
 
+        // Set chart title and y-axis label based on viewType
+        const chartTitle = getChartTitle(viewType);
+        const yAxisLabel = getYAxisLabel(viewType);
+
         setChartData({
           labels: formattedLabels,
           datasets: [
             {
-              label: 'Balance Over Time',
+              label: chartTitle,
               data: values,
               borderColor: '#227C72',
               backgroundColor: 'rgba(34, 124, 114, 0.1)',
@@ -96,6 +110,11 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
             }
           ]
         });
+
+        // Update options with new title and y-axis label
+        options.plugins.title.text = `${timeframe === 'day' ? 'Daily' : timeframe === 'week' ? 'Weekly' : 'Monthly'} ${chartTitle}`;
+        options.scales.y.title.text = yAxisLabel;
+
       } catch (error) {
         console.error('Error fetching line chart data:', error);
       } finally {
@@ -104,7 +123,16 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
     };
 
     fetchData();
-  }, [timeframe, refreshTrigger, sideHustle]);
+  }, [timeframe, refreshTrigger, sideHustle, viewType]);
+
+  // Get initial chart title and y-axis label based on viewType
+  const getChartTitle = (type) => type === 'gainLoss' ? 'Balance Over Time' :
+                                type === 'gain' ? 'Income Over Time' :
+                                'Expenses Over Time';
+
+  const getYAxisLabel = (type) => type === 'gainLoss' ? 'Balance ($)' :
+                               type === 'gain' ? 'Income ($)' :
+                               'Expenses ($)';
 
   const options = {
     responsive: true,
@@ -122,7 +150,7 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
       },
       title: {
         display: true,
-        text: `${timeframe === 'day' ? 'Daily' : timeframe === 'week' ? 'Weekly' : 'Monthly'} Balance`,
+        text: `${timeframe === 'day' ? 'Daily' : timeframe === 'week' ? 'Weekly' : 'Monthly'} ${getChartTitle(viewType)}`,
         font: {
           family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
           size: 16,
@@ -136,7 +164,7 @@ const LineChart = ({ timeframe = 'month', refreshTrigger, sideHustle }) => {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Balance ($)',
+          text: getYAxisLabel(viewType),
           color: '#227C72',
           font: {
             family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
