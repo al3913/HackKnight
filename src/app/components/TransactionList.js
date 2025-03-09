@@ -6,6 +6,17 @@ const TransactionList = ({ refreshTrigger }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    });
+  };
+
   const fetchTransactions = async () => {
     try {
       setLoading(true);
@@ -23,12 +34,14 @@ const TransactionList = ({ refreshTrigger }) => {
         ...depositsData.deposits.map(d => ({
           ...d,
           type: 'deposit',
-          formattedAmount: `+$${d.amount.toFixed(2)}`
+          formattedAmount: `+$${d.amount.toFixed(2)}`,
+          formattedDate: formatDate(d.transaction_date)
         })),
         ...withdrawalsData.withdrawals.map(w => ({
           ...w,
           type: 'withdrawal',
-          formattedAmount: `-$${w.amount.toFixed(2)}`
+          formattedAmount: `-$${w.amount.toFixed(2)}`,
+          formattedDate: formatDate(w.transaction_date)
         }))
       ];
 
@@ -59,7 +72,10 @@ const TransactionList = ({ refreshTrigger }) => {
         {transactions.map((transaction, index) => (
           <div key={index} className={`transaction-item ${transaction.type}`}>
             <div className="transaction-info">
-              <div className="transaction-description">{transaction.description}</div>
+              <div className="transaction-details">
+                <div className="transaction-description">{transaction.description}</div>
+                <div className="transaction-date">{transaction.formattedDate}</div>
+              </div>
               <div className={`transaction-amount ${transaction.type}`}>
                 {transaction.formattedAmount}
               </div>
@@ -98,12 +114,23 @@ const TransactionList = ({ refreshTrigger }) => {
         .transaction-info {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
+        }
+        .transaction-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
         }
         .transaction-description {
           color: #093030;
           font-family: 'Jersey_15';
           font-size: 0.9rem;
+        }
+        .transaction-date {
+          color: #227C72;
+          font-family: 'Jersey_15';
+          font-size: 0.8rem;
+          opacity: 0.8;
         }
         .transaction-amount {
           font-family: 'Jersey_15';
