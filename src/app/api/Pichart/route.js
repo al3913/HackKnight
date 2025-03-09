@@ -80,10 +80,6 @@ export async function GET() {
       pieChartData.expenses[hustle] = 0;
     });
     
-    // Add "Other" category
-    pieChartData.income["Other"] = 0;
-    pieChartData.expenses["Other"] = 0;
-    
     // Calculate totals for each side hustle
     allTransactions.forEach(transaction => {
       const description = transaction.description.toLowerCase();
@@ -92,25 +88,28 @@ export async function GET() {
       // Find matching side hustle
       const matchingHustle = sideHustles.find(hustle => 
         description.includes(hustle.toLowerCase())
-      ) || "Other";
+      );
 
-      console.log('Categorizing transaction:', {
-        description,
-        amount,
-        type: transaction.type,
-        matchingHustle
-      });
-      
-      if (transaction.type === 'deposit') {
-        pieChartData.income[matchingHustle] += amount;
-      } else {
-        pieChartData.expenses[matchingHustle] += amount;
+      // Only include transactions that match a side hustle
+      if (matchingHustle) {
+        console.log('Categorizing transaction:', {
+          description,
+          amount,
+          type: transaction.type,
+          matchingHustle
+        });
+        
+        if (transaction.type === 'deposit') {
+          pieChartData.income[matchingHustle] += amount;
+        } else {
+          pieChartData.expenses[matchingHustle] += amount;
+        }
       }
     });
 
     console.log('Pie chart data:', pieChartData);
 
-    // Calculate totals
+    // Calculate totals (only from side hustle transactions)
     const totals = {
       totalIncome: Object.values(pieChartData.income).reduce((a, b) => a + b, 0),
       totalExpenses: Object.values(pieChartData.expenses).reduce((a, b) => a + b, 0)
@@ -138,6 +137,9 @@ export async function GET() {
       metadata: {
         sideHustles,
         transactionCount: allTransactions.length,
+        sideHustleTransactionCount: allTransactions.filter(t => 
+          sideHustles.some(h => t.description.toLowerCase().includes(h.toLowerCase()))
+        ).length,
         depositsCount: deposits.length,
         withdrawalsCount: withdrawals.length
       }

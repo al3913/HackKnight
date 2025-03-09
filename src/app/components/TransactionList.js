@@ -20,6 +20,15 @@ const TransactionList = ({ refreshTrigger }) => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
+      
+      // First fetch the valid side hustles
+      const sideHustlesResponse = await fetch('/api/sidehustles');
+      if (!sideHustlesResponse.ok) {
+        throw new Error('Failed to fetch side hustles');
+      }
+      const sideHustlesData = await sideHustlesResponse.json();
+      const validSideHustles = sideHustlesData.sideHustles;
+
       // Fetch both deposits and withdrawals
       const [depositsRes, withdrawalsRes] = await Promise.all([
         fetch('/api/nessie/deposits'),
@@ -29,20 +38,30 @@ const TransactionList = ({ refreshTrigger }) => {
       const depositsData = await depositsRes.json();
       const withdrawalsData = await withdrawalsRes.json();
 
-      // Combine and format transactions
+      // Helper function to check if a transaction is from a valid side hustle
+      const isValidSideHustleTransaction = transaction => 
+        validSideHustles.some(hustle => 
+          transaction.description.toLowerCase().includes(hustle.toLowerCase())
+        );
+
+      // Combine and format transactions, filtering for side hustles only
       const allTransactions = [
-        ...depositsData.deposits.map(d => ({
-          ...d,
-          type: 'deposit',
-          formattedAmount: `+$${d.amount.toFixed(2)}`,
-          formattedDate: formatDate(d.transaction_date)
-        })),
-        ...withdrawalsData.withdrawals.map(w => ({
-          ...w,
-          type: 'withdrawal',
-          formattedAmount: `-$${w.amount.toFixed(2)}`,
-          formattedDate: formatDate(w.transaction_date)
-        }))
+        ...depositsData.deposits
+          .filter(isValidSideHustleTransaction)
+          .map(d => ({
+            ...d,
+            type: 'deposit',
+            formattedAmount: `+$${d.amount.toFixed(2)}`,
+            formattedDate: formatDate(d.transaction_date)
+          })),
+        ...withdrawalsData.withdrawals
+          .filter(isValidSideHustleTransaction)
+          .map(w => ({
+            ...w,
+            type: 'withdrawal',
+            formattedAmount: `-$${w.amount.toFixed(2)}`,
+            formattedDate: formatDate(w.transaction_date)
+          }))
       ];
 
       // Sort by date (assuming there's a date field, adjust as needed)
