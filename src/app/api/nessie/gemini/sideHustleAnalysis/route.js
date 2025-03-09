@@ -78,6 +78,78 @@ function analyzeTransactionTiming(deposits) {
   }
 }
 
+// Helper function to get recent transactions
+function getRecentTransactions(deposits, withdrawals) {
+  try {
+    const allTransactions = [
+      ...(deposits.deposits || []).map(d => ({...d, type: 'deposit'})),
+      ...(withdrawals.withdrawals || []).map(w => ({...w, type: 'withdrawal'}))
+    ];
+    
+    // Sort by date descending
+    allTransactions.sort((a, b) => 
+      new Date(b.transaction_date) - new Date(a.transaction_date)
+    );
+    
+    // Get 5 most recent transactions
+    return allTransactions.slice(0, 5);
+  } catch (error) {
+    console.error('Error processing recent transactions:', error);
+    return [];
+  }
+}
+
+// Helper function to calculate advanced metrics
+function calculateAdvancedMetrics(deposits, withdrawals) {
+  try {
+    const depositsArr = deposits.deposits || [];
+    const withdrawalsArr = withdrawals.withdrawals || [];
+    
+    // Calculate averages
+    const avgEarning = depositsArr.length > 0 
+      ? depositsArr.reduce((sum, d) => sum + (d.amount || 0), 0) / depositsArr.length 
+      : 0;
+    const avgExpense = withdrawalsArr.length > 0
+      ? withdrawalsArr.reduce((sum, w) => sum + (w.amount || 0), 0) / withdrawalsArr.length
+      : 0;
+
+    // Calculate trends (last 30 days vs previous 30 days)
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now - 60 * 24 * 60 * 60 * 1000);
+
+    const recent30DaysEarnings = depositsArr
+      .filter(d => new Date(d.transaction_date) >= thirtyDaysAgo)
+      .reduce((sum, d) => sum + (d.amount || 0), 0);
+
+    const previous30DaysEarnings = depositsArr
+      .filter(d => {
+        const date = new Date(d.transaction_date);
+        return date >= sixtyDaysAgo && date < thirtyDaysAgo;
+      })
+      .reduce((sum, d) => sum + (d.amount || 0), 0);
+
+    const earningsGrowth = previous30DaysEarnings !== 0 
+      ? ((recent30DaysEarnings - previous30DaysEarnings) / previous30DaysEarnings * 100).toFixed(1)
+      : 0;
+
+    return {
+      avgEarning,
+      avgExpense,
+      earningsGrowth,
+      profitMargin: deposits.totalAmount ? ((deposits.totalAmount - withdrawals.totalAmount) / deposits.totalAmount * 100).toFixed(1) : 0
+    };
+  } catch (error) {
+    console.error('Error calculating advanced metrics:', error);
+    return {
+      avgEarning: 0,
+      avgExpense: 0,
+      earningsGrowth: 0,
+      profitMargin: 0
+    };
+  }
+}
+
 export async function GET(request) {
   try {
     // Validate API key first
@@ -106,6 +178,15 @@ export async function GET(request) {
     // Analyze timing patterns
     const timingAnalysis = analyzeTransactionTiming(deposits);
 
+    // Get recent transactions
+    const recentTransactions = getRecentTransactions(deposits, withdrawals);
+    const recentTransactionsText = recentTransactions
+      .map(t => `• ${new Date(t.transaction_date).toLocaleDateString()}: ${t.type} of $${t.amount}`)
+      .join('\n');
+
+    // Calculate advanced metrics
+    const advancedMetrics = calculateAdvancedMetrics(deposits, withdrawals);
+
     // Prepare data for Gemini analysis
     const analysisPrompt = `
       Based on the ${sideHustle} transaction data:
@@ -117,6 +198,15 @@ export async function GET(request) {
       • Number of Income Transactions: ${deposits.count || 0}
       • Number of Expense Transactions: ${withdrawals.count || 0}
 
+      📊 Advanced Metrics:
+      • Average Earning per Transaction: $${advancedMetrics.avgEarning.toFixed(2)}
+      • Average Expense per Transaction: $${advancedMetrics.avgExpense.toFixed(2)}
+      • 30-Day Earnings Growth: ${advancedMetrics.earningsGrowth}%
+      • Overall Profit Margin: ${advancedMetrics.profitMargin}%
+
+      📅 Recent Transactions:
+      ${recentTransactionsText}
+
       ⏰ Activity Data:
       • Active Hours: ${timingAnalysis.transactionsByHour.map((count, hour) => `${hour}:00 (${count} transactions)`).filter(h => h.includes('(0') === false).join(', ')}
       • Active Days: ${Object.entries(timingAnalysis.transactionsByDay)
@@ -124,18 +214,21 @@ export async function GET(request) {
         .map(([day, count]) => `${day} (${count} transactions)`)
         .join(', ')}
 
-      Provide exactly three bullet points, keeping each response brief and specific:
+      Provide exactly four bullet points, keeping each response brief and specific:
 
       ⏰ BEST TIME TO WORK
       • [Identify the most profitable time period during the day based on transaction patterns. Be specific about hours.]
 
       💰 MONTHLY HIGHLIGHTS
-      • [State the highest income and expense amounts from the most recent transactions. Include specific amounts and dates.]
+      • [Analyze the recent transactions above. Include highest income, expense amounts, and dates.]
+
+      📈 PERFORMANCE METRICS
+      • [Analyze the profit margin, average transaction values, and growth trend. Highlight significant changes.]
 
       🎯 OVERALL RECOMMENDATION
-      • [Give one clear, actionable suggestion based on the complete transaction history.]
+      • [Give one clear, actionable suggestion based on all metrics above.]
 
-      Keep each bullet point concise - no more than two sentences each.
+      Keep each bullet point concise - no more than two sentences each. Make sure that all time is in EST time zone with the AM or PM suffix.
     `;
 
     try {

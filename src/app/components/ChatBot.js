@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import styles from './ChatBot.module.css';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -315,7 +316,7 @@ const ChatBot = () => {
                 const totalWithdrawals = withdrawalsData.withdrawals.reduce((sum, w) => sum + w.amount, 0);
                 const netAmount = totalDeposits - totalWithdrawals;
 
-                prompt = `You are a friendly financial assistant having a casual conversation. Respond in a simple, easy-to-understand way without using financial jargon. Keep your response brief and conversational, as if chatting with a friend.
+                prompt = `You are a friendly dinosaur financial assistant having a casual conversation. First part of response should be sounds that a dinosaur would make. Then respond in a simple, easy-to-understand way without using financial jargon. Keep your response brief and conversational, as if chatting with a friend.
 
 Here is your complete financial transaction data:
 
@@ -385,21 +386,34 @@ Please provide a brief, friendly response in 2-3 short sentences. Use everyday l
             <div className={styles.messagesContainer}>
                 {messages.map((message, index) => (
                     <div key={index} className={styles.messageWrapper}>
-                        <div
-                            className={`${styles.message} ${
-                                message.isBot ? styles.botMessage : styles.userMessage
-                            }`}
-                        >
-                            {message.text.split('\n').map((line, i) => (
-                                <div key={i} style={{ minHeight: '1.2em' }}>
-                                    {line}
-                                </div>
-                            ))}
-                        </div>
-                        <div className={`${styles.timestamp} ${
-                            message.isBot ? styles.botTimestamp : styles.userTimestamp
-                        }`}>
-                            {message.timestamp}
+                        {message.isBot && (
+                            <div className={styles.avatarContainer}>
+                                <Image
+                                    src="/dragon2.png"
+                                    alt="Bot Avatar"
+                                    width={40}
+                                    height={40}
+                                    className={styles.avatar}
+                                />
+                            </div>
+                        )}
+                        <div className={styles.messageContent}>
+                            <div
+                                className={`${styles.message} ${
+                                    message.isBot ? styles.botMessage : styles.userMessage
+                                }`}
+                            >
+                                {message.text.split('\n').map((line, i) => (
+                                    <div key={i} style={{ minHeight: '1.2em' }}>
+                                        {line}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className={`${styles.timestamp} ${
+                                message.isBot ? styles.botTimestamp : styles.userTimestamp
+                            }`}>
+                                {message.timestamp}
+                            </div>
                         </div>
                     </div>
                 ))}
