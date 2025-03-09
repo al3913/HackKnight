@@ -209,7 +209,7 @@ const QuestsPage = () => {
                 className="add-hustle-button"
                 onClick={() => setShowAddHustleDialog(true)}
               >
-                + Add Hustle
+                + Add Quest
               </button>
               {selectedHustle && (
                 <button 
