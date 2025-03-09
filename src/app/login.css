@@ -159,6 +159,37 @@
   opacity: 0;
 }
 
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .stats-section {
   background: rgba(255, 255, 255, 0.5);
   border-radius: 1.5rem;
@@ -167,6 +198,7 @@
   position: relative;
   z-index: 2;
   backdrop-filter: blur(10px);
+  animation: slide-up 0.6s ease-out forwards;
 }
 
 .stats-container {
@@ -186,7 +218,7 @@
   align-items: center;
   gap: 0.25rem;
   color: #093030;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
 }
 
 .stat-icon {
@@ -201,7 +233,7 @@
 
 .stat-value {
   font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 3.3rem;
+  font-size: 3.5rem;
   color: white;
   -webkit-text-stroke: 1.5px #9AD7AE;
   margin: 0.25rem 0;
@@ -243,7 +275,7 @@
 .stats-dragon {
   position: fixed;
   right: -1.7rem;
-  bottom: 6rem;
+  bottom: 8rem;
   width: 210px;
   height: 160px;
   z-index: 3;
@@ -292,15 +324,18 @@
   justify-content: flex-start;
   padding: 1rem;
   overflow: hidden;
+  animation: scale-in 0.5s ease-out forwards;
 }
 
 .overview-card:first-child {
   min-height: 400px;
+  animation-delay: 0.2s;
 }
 
 .overview-card:last-child {
   min-height: 400px;
   overflow-y: auto;
+  animation-delay: 0.4s;
 }
 
 .logo-section {
@@ -374,7 +409,8 @@
 .wave-background {
   position: absolute;
   bottom: 0;
-  width: 100%;
+  left: -1rem;
+  width: calc(100% + 2rem);
   height: 12rem;
   background: linear-gradient(to bottom, #227C72, #113D21);
   border-radius: 100% 100% 0 0;
@@ -556,7 +592,7 @@
   width: 300px;
   height: 100vh;
   background: linear-gradient(135deg, #47C9CA 0%, #5ED3B8 25%, #7DDBA3 50%, #B4E7C8 75%, #E8F7D6 100%);
-  z-index: 999;
+  z-index: 9999;
   transition: left 0.3s ease;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   padding: 2rem 0;
@@ -713,7 +749,13 @@
 .trends-section {
   margin: 2rem 0;
   z-index: 2;
-  padding: 0 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 1.5rem;
+  backdrop-filter: blur(10px);
+  animation: slide-up 0.6s ease-out forwards;
+  animation-delay: 0.6s;
+  opacity: 0;
 }
 
 .trends-section h2 {
@@ -722,16 +764,17 @@
   color: #227C72;
   margin: 0 0 1.5rem 0;
   font-weight: bold;
+  text-align: left;
 }
 
 .timeframe-buttons {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
 .timeframe-button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   border: none;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.3);
@@ -739,23 +782,26 @@
   font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  margin-top: -0.8rem;
+  transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  transform-origin: center;
 }
 
 .timeframe-button:hover {
   background: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.05);
 }
 
 .timeframe-button.active {
   background: #227C72;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
 }
 
 .trends-chart {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.3);
   font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   border-radius: 1.5rem;
   padding: 1.5rem;
@@ -1221,4 +1267,55 @@
   bottom: 1.5rem;
   transform: scale(0.9);
   animation-delay: 16s;
+}
+
+.info-button-container {
+  position: relative;
+  z-index: 99999;
+}
+
+.info-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+.info-popup {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #227C72;
+  border-radius: 8px;
+  padding: 1rem;
+  width: 300px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.0, 0.6);
+  color: #227C72;
+  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  pointer-events: auto;
+  backdrop-filter: box-shadow(8px);
+}
+
+.info-popup h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.info-popup ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.info-popup li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.info-popup li:last-child {
+  margin-bottom: 0;
 } 

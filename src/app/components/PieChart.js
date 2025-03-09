@@ -95,18 +95,7 @@ const PieChart = ({ refreshTrigger }) => {
     maintainAspectRatio: false,
     plugins: {
       title: {
-        display: true,
-        text: viewType === 'income' ? 'Side Hustle Income Distribution' : 'Side Hustle Expenses Distribution',
-        color: '#227C72',
-        font: {
-          family: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-          size: 20,
-          weight: 'bold'
-        },
-        padding: {
-          top: 10,
-          bottom: 20
-        }
+        display: false
       },
       legend: {
         position: 'right',
@@ -144,24 +133,71 @@ const PieChart = ({ refreshTrigger }) => {
     }
   };
 
-  const TabButton = ({ type, label }) => (
-    <button
-      onClick={() => setViewType(type)}
-      style={{
-        padding: '0.5rem 1rem',
-        margin: '0 0.25rem',
-        backgroundColor: viewType === type ? '#227C72' : 'transparent',
-        color: viewType === type ? 'white' : '#227C72',
-        border: '2px solid #227C72',
-        borderRadius: '0.5rem',
+  const ToggleSwitch = () => (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      marginBottom: '-0.6rem'
+    }}>
+      <div style={{
+        position: 'relative',
+        width: '200px',
+        height: '36px',
+        backgroundColor: '#E5E7EB',
+        borderRadius: '18px',
+        padding: '3px',
         cursor: 'pointer',
-        fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-        fontWeight: '500',
-        transition: 'all 0.2s'
-      }}
-    >
-      {label}
-    </button>
+        border: '1px solid #227C72',
+        overflow: 'hidden'
+      }} onClick={() => setViewType(viewType === 'income' ? 'expenses' : 'income')}>
+        {/* Sliding background */}
+        <div style={{
+          position: 'absolute',
+          left: viewType === 'income' ? '3px' : 'calc(50% - 3px)',
+          top: '3px',
+          width: 'calc(50% - 6px)',
+          height: 'calc(100% - 6px)',
+          backgroundColor: '#227C72',
+          borderRadius: '15px',
+          transition: 'left 0.3s ease'
+        }} />
+        
+        {/* Text labels */}
+        <div style={{
+          position: 'relative',
+          display: 'flex',
+          width: '100%',
+          height: '100%',
+          zIndex: 1
+        }}>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: viewType === 'income' ? 'white' : '#666',
+            fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+            fontWeight: '500',
+            transition: 'color 0.3s ease'
+          }}>
+            Income
+          </div>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: viewType === 'expenses' ? 'white' : '#666',
+            fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+            fontWeight: '500',
+            transition: 'color 0.3s ease'
+          }}>
+            Expenses
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -171,29 +207,41 @@ const PieChart = ({ refreshTrigger }) => {
       padding: '0.25rem',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       minHeight: '380px'
     }}>
-      <div style={{ marginBottom: '1rem' }}>
-        <TabButton type="income" label="Income" />
-        <TabButton type="expenses" label="Expenses" />
+      <div style={{
+        color: '#227C72',
+        fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+        fontSize: '20px',
+        fontWeight: 'bold',
+        marginBottom: '0.5rem',
+        marginLeft: '0.5rem'
+      }}>
+        {viewType === 'income' ? 'Income Distribution' : 'Expenses Distribution'}
       </div>
+      <ToggleSwitch />
       
       {loading ? (
         <div style={{ 
           color: '#227C72',
-          fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+          fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          marginTop: '-10rem',
+          marginLeft: '0.5rem'
         }}>
           Loading chart data...
         </div>
       ) : chartData.labels.length > 0 ? (
-        <div style={{ width: '90%', height: '90%' }}>
+        <div style={{ width: '90%', height: '90%', marginTop: '-0.5rem' }}>
           <Pie data={chartData} options={options} />
           {apiData && (
             <div style={{
               textAlign: 'center',
-              marginTop: '1rem',
+              marginTop: '0.5rem',
               fontFamily: 'Jersey_15, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
               color: '#227C72'
             }}>

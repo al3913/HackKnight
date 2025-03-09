@@ -15,6 +15,7 @@ const HomePage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTimeframe, setActiveTimeframe] = useState('month');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [userProfile, setUserProfile] = useState({
     name: 'John Captial',
     email: 'john.captial@example.com',
@@ -239,7 +240,10 @@ const HomePage = () => {
           <div className="menu-icon"></div>
         </button>
         <div className="header-icons">
-          <button className="icon-button">
+          <button 
+            className="icon-button"
+            onClick={() => setShowInfoPopup(!showInfoPopup)}
+          >
             <Image
               src="/info.png"
               alt="Info"
@@ -248,17 +252,24 @@ const HomePage = () => {
               className="info-icon"
             />
           </button>
-          <button className="icon-button">
-            <Image
-              src="/settings.png"
-              alt="Settings"
-              width={24}
-              height={24}
-              className="settings-icon"
-            />
-          </button>
         </div>
       </header>
+
+      {/* Info Popup - Moved to root level */}
+      {showInfoPopup && (
+        <div className="info-popup-overlay">
+          <div className="info-popup">
+            <h3>Quick Guide</h3>
+            <ul>
+              <li>View your income and expense distribution in the pie chart</li>
+              <li>Track your recent transactions in the transaction list</li>
+              <li>Monitor income trends with daily, weekly, or monthly views</li>
+              <li>Log new expenses using the "Log Expenses" button</li>
+              <li>Refresh your data using the reload icon</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Sliding Menu */}
       <div ref={menuRef} className={`sliding-menu ${isMenuOpen ? 'open' : ''}`}>
@@ -337,10 +348,18 @@ const HomePage = () => {
                     className="stat-icon"
                   />
                   <span>Total Revenue</span>
+                </div>
+                <div className="stat-value">${financialData.totalAmount.toFixed(2)}</div>
+                <div className="status-container">
+                  <div className="stat-status">{financialData.status}</div>
+                </div>
+                <div className="last-updated">
+                  <span className="update-text">Last updated: {new Date(financialData.lastUpdated).toLocaleTimeString()}</span>
                   <button 
                     onClick={handleRefresh}
                     className="refresh-button"
                     disabled={isLoading}
+                    title="Refresh data"
                   >
                     <svg 
                       width="16" 
@@ -356,11 +375,6 @@ const HomePage = () => {
                     </svg>
                   </button>
                 </div>
-                <div className="stat-value">${financialData.totalAmount.toFixed(2)}</div>
-                <div className="stat-status">{financialData.status}</div>
-                <div className="last-updated">
-                  Last updated: {new Date(financialData.lastUpdated).toLocaleTimeString()}
-                </div>
               </div>
               <div className="stat-item expense-stat">
                 <div className="stat-label">
@@ -373,18 +387,15 @@ const HomePage = () => {
                   />
                   <span>Total Expense</span>
                 </div>
-                <div className="expense-container">
-                  <div className="stat-value expense">
-                    -${financialData.totalExpense.toFixed(2)}
-                  </div>
-                  <button 
-                    className="add-expense-button"
-                    onClick={() => setShowExpenseDialog(true)}
-                    title="Add Expense"
-                  >
-                    +
-                  </button>
+                <div className="stat-value expense">
+                  -${financialData.totalExpense.toFixed(2)}
                 </div>
+                <button 
+                  className="log-expense-button"
+                  onClick={() => setShowExpenseDialog(true)}
+                >
+                  Log Expenses
+                </button>
               </div>
             </>
           )}
@@ -843,6 +854,140 @@ const HomePage = () => {
 
         .expense-stat {
           position: relative;
+        }
+
+        .log-expense-button {
+          background: transparent;
+          color: #227C72;
+          border: 1px solid #227C72;
+          border-radius: 0.5rem;
+          padding: 0.4rem 0.8rem;
+          font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-top: 0.5rem;
+          margin-left: 0.5rem;
+          opacity: 0.85;
+        }
+
+        .log-expense-button:hover {
+          background: rgba(34, 124, 114, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .log-expense-button:active {
+          transform: translateY(0);
+        }
+
+        .status-container {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-top: 0.25rem;
+          margin-left: 0.4rem;
+        }
+
+        .stat-status {
+          color: #227C72;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+
+        .last-updated {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 0.2rem;
+          margin-left: 0.4rem;
+        }
+
+        .update-text {
+          color: #227C72;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+
+        .refresh-button {
+          background: none;
+          border: none;
+          padding: 0.25rem;
+          cursor: pointer;
+          color: #227C72;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          border-radius: 50%;
+          margin-left: -0.3rem;
+        }
+
+        .refresh-button:hover {
+          background: rgba(34, 124, 114, 0.1);
+          transform: rotate(45deg);
+        }
+
+        .refresh-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .info-button-container {
+          position: relative;
+          z-index: 9999;
+        }
+
+        .info-popup {
+          position: fixed;
+          top: 60px;
+          right: 20px;
+          margin-top: 0.5rem;
+          background: white;
+          border: 1px solid #227C72;
+          border-radius: 8px;
+          padding: 1rem;
+          width: 300px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          z-index: 9999;
+          color: #227C72;
+          font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          backdrop-filter: blur(8px);
+        }
+
+        .info-popup h3 {
+          margin: 0 0 0.5rem 0;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+
+        .info-popup ul {
+          margin: 0;
+          padding-left: 1.2rem;
+        }
+
+        .info-popup li {
+          margin-bottom: 0.5rem;
+          font-size: 0.9rem;
+        }
+
+        .info-popup li:last-child {
+          margin-bottom: 0;
+        }
+
+        .icon-button {
+          background: none;
+          border: none;
+          padding: 0.5rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: background-color 0.2s;
+        }
+
+        .icon-button:hover {
+          background: rgba(34, 124, 114, 0.1);
         }
       `}</style>
     </div>
