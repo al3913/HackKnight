@@ -26,6 +26,14 @@ const HomePage = () => {
   // Use the custom hook instead of local state and useEffect
   const { financialData, isLoading, error, refreshData } = useFinancialData();
 
+  const [showExpenseDialog, setShowExpenseDialog] = useState(false);
+  const [selectedQuest, setSelectedQuest] = useState('');
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringPeriod, setRecurringPeriod] = useState('daily');
+  const [sideHustles, setSideHustles] = useState([]);
+  const [description, setDescription] = useState('');
+
   // Add useEffect to listen for profile changes
   useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -44,6 +52,12 @@ const HomePage = () => {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Load side hustles when component mounts
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    setSideHustles(userData.sideHustles || []);
   }, []);
 
   // Handle refresh for all components
@@ -158,6 +172,60 @@ const HomePage = () => {
       default:
         // Handle other menu items
         break;
+    }
+  };
+
+  const handleSubmitExpense = async () => {
+    if (!selectedQuest || !expenseAmount) {
+      alert('Please select a quest and enter an amount');
+      return;
+    }
+
+    const expenseData = {
+      quest: selectedQuest,
+      amount: parseFloat(expenseAmount),
+      isRecurring,
+      recurringPeriod: isRecurring ? recurringPeriod : null,
+      description,
+      date: new Date().toISOString(),
+      type: 'withdrawal'
+    };
+
+    try {
+      // Save the expense to your backend
+      const response = await fetch('/api/nessie/withdrawals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(expenseData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save expense');
+      }
+
+      // Reset form
+      setSelectedQuest('');
+      setExpenseAmount('');
+      setIsRecurring(false);
+      setRecurringPeriod('daily');
+      setDescription('');
+      setShowExpenseDialog(false);
+
+      // Refresh financial data and transactions
+      handleRefresh();
+    } catch (error) {
+      console.error('Error saving expense:', error);
+      alert('Failed to save expense. Please try again.');
+    }
+  };
+
+  // Add this function to handle amount input
+  const handleAmountChange = (e) => {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setExpenseAmount(value);
     }
   };
 
@@ -294,7 +362,7 @@ const HomePage = () => {
                   Last updated: {new Date(financialData.lastUpdated).toLocaleTimeString()}
                 </div>
               </div>
-              <div className="stat-item">
+              <div className="stat-item expense-stat">
                 <div className="stat-label">
                   <Image
                     src="/Expense.png"
@@ -305,7 +373,18 @@ const HomePage = () => {
                   />
                   <span>Total Expense</span>
                 </div>
-                <div className="stat-value expense">-${financialData.totalExpense.toFixed(2)}</div>
+                <div className="expense-container">
+                  <div className="stat-value expense">
+                    -${financialData.totalExpense.toFixed(2)}
+                  </div>
+                  <button 
+                    className="add-expense-button"
+                    onClick={() => setShowExpenseDialog(true)}
+                    title="Add Expense"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -380,6 +459,392 @@ const HomePage = () => {
         className="cloud"
       />
       <div className="wave-background"></div>
+
+      {/* Expense Dialog */}
+      {showExpenseDialog && (
+        <div className="dialog-overlay">
+          <div className="expense-dialog">
+            <div className="dialog-header">
+              <h2>Add New Expense</h2>
+              <button 
+                className="close-button"
+                onClick={() => setShowExpenseDialog(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="expense-form">
+              <div className="input-grid">
+                <div className="input-group">
+                  <label>Select Quest</label>
+                  <select
+                    value={selectedQuest}
+                    onChange={(e) => setSelectedQuest(e.target.value)}
+                    className="quest-select"
+                    required
+                  >
+                    <option value="">Choose a quest</option>
+                    {sideHustles.map((hustle) => (
+                      <option key={hustle} value={hustle}>
+                        {hustle.charAt(0).toUpperCase() + hustle.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label>Amount ($)</label>
+                  <input
+                    type="text"
+                    value={expenseAmount}
+                    onChange={handleAmountChange}
+                    placeholder="Enter amount"
+                    className="amount-input"
+                    required
+                    inputMode="decimal"
+                  />
+                </div>
+              </div>
+
+              <div className="recurring-section">
+                <div className="recurring-container">
+                  <label className="recurring-label">
+                    <input
+                      type="checkbox"
+                      checked={isRecurring}
+                      onChange={(e) => setIsRecurring(e.target.checked)}
+                      className="recurring-checkbox"
+                    />
+                    <span>Recurring</span>
+                  </label>
+
+                  {isRecurring && (
+                    <select
+                      value={recurringPeriod}
+                      onChange={(e) => setRecurringPeriod(e.target.value)}
+                      className="period-select"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              <div className="description-section">
+                <label>Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Add a description..."
+                  className="description-input"
+                  rows={4}
+                />
+              </div>
+
+              <div className="form-buttons">
+                <button 
+                  className="submit-button"
+                  onClick={handleSubmitExpense}
+                  disabled={!selectedQuest || !expenseAmount}
+                >
+                  Add Expense
+                </button>
+                <button 
+                  className="cancel-button"
+                  onClick={() => setShowExpenseDialog(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .dialog-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+
+        .expense-dialog {
+          background: white;
+          border-radius: 1.5rem;
+          padding: 1.5rem;
+          width: 90%;
+          max-width: 500px;
+          animation: dialog-fade-in 0.3s ease-out;
+        }
+
+        @keyframes dialog-fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .dialog-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .dialog-header h2 {
+          color: #093030;
+          margin: 0;
+          font-size: 1.5rem;
+          font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .close-button {
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          color: #093030;
+          cursor: pointer;
+          padding: 0.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          transition: background-color 0.2s;
+        }
+
+        .close-button:hover {
+          background: rgba(0, 0, 0, 0.05);
+        }
+
+        .expense-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .input-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+
+        .input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .input-group label {
+          color: #093030;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+
+        .quest-select,
+        .amount-input,
+        .period-select {
+          padding: 0.75rem;
+          border: 2px solid #227C72;
+          border-radius: 0.75rem;
+          background: rgba(180, 231, 200, 0.1);
+          color: #093030;
+          font-family: inherit;
+          font-size: 0.95rem;
+          width: 100%;
+          height: 45px;
+          transition: all 0.2s ease;
+        }
+
+        .quest-select:focus,
+        .amount-input:focus,
+        .period-select:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(34, 124, 114, 0.2);
+          border-color: #227C72;
+        }
+
+        .recurring-section {
+          margin-top: -0.5rem;
+        }
+
+        .recurring-container {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .recurring-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #093030;
+          font-size: 0.95rem;
+          cursor: pointer;
+        }
+
+        .recurring-checkbox {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #227C72;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .period-select {
+          flex: 1;
+          max-width: 200px;
+        }
+
+        .description-section {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .description-section label {
+          color: #093030;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+
+        .description-input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 2px solid #227C72;
+          border-radius: 0.75rem;
+          background: rgba(180, 231, 200, 0.1);
+          color: #093030;
+          font-family: inherit;
+          font-size: 0.95rem;
+          resize: vertical;
+          min-height: 100px;
+          transition: all 0.2s ease;
+        }
+
+        .description-input:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(34, 124, 114, 0.2);
+          border-color: #227C72;
+        }
+
+        .form-buttons {
+          display: flex;
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        .submit-button,
+        .cancel-button {
+          flex: 1;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 0.75rem;
+          font-family: inherit;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .submit-button {
+          background: linear-gradient(135deg, #227C72, #1b6359);
+          color: white;
+        }
+
+        .submit-button:hover:not(:disabled) {
+          background: linear-gradient(135deg, #1b6359, #145049);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .submit-button:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .cancel-button {
+          background: transparent;
+          border: 2px solid #E2E8F0;
+          color: #093030;
+        }
+
+        .cancel-button:hover {
+          background: rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group input[type="number"] {
+          -moz-appearance: textfield;
+        }
+
+        .input-group input[type="number"]::-webkit-outer-spin-button,
+        .input-group input[type="number"]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        .expense-container {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          position: relative;
+        }
+
+        .add-expense-button {
+          background: linear-gradient(135deg, #227C72, #1b6359);
+          color: white;
+          border: none;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 1.5rem;
+          line-height: 1;
+          padding: 0;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          position: relative;
+          margin-left: 4px;
+        }
+
+        .add-expense-button:hover {
+          background: linear-gradient(135deg, #1b6359, #145049);
+          transform: scale(1.1);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .add-expense-button:active {
+          transform: scale(1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value.expense {
+          cursor: default;
+        }
+
+        .expense-stat {
+          position: relative;
+        }
+      `}</style>
     </div>
   );
 };
