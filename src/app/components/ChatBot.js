@@ -160,17 +160,22 @@ const ChatBot = () => {
                 ...depositsData.deposits.map(d => ({
                     ...d,
                     type: 'deposit',
-                    amount: d.amount
+                    formattedAmount: `+$${d.amount.toFixed(2)}`
                 })),
                 ...withdrawalsData.withdrawals.map(w => ({
                     ...w,
                     type: 'withdrawal',
-                    amount: w.amount
+                    formattedAmount: `-$${w.amount.toFixed(2)}`
                 }))
             ];
 
             // Sort by date
             allTransactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+
+            // Calculate totals
+            const totalDeposits = depositsData.deposits.reduce((sum, d) => sum + d.amount, 0);
+            const totalWithdrawals = withdrawalsData.withdrawals.reduce((sum, w) => sum + w.amount, 0);
+            const netAmount = totalDeposits - totalWithdrawals;
 
             // Analyze transactions
             const analysis = analyzeTransactions(allTransactions);
@@ -207,38 +212,55 @@ const ChatBot = () => {
 
             let prompt = userMessage;
             if (userMessage.toLowerCase().match(/transaction|spend|spent|payment|deposit|withdrawal|budget|expense|money/)) {
-                // Fetch the latest transaction data from the summaries endpoint
-                const summaryRes = await fetch('/api/nessie/summaries');
-                const summaryData = await summaryRes.json();
+                // Fetch all transactions
+                const [depositsRes, withdrawalsRes] = await Promise.all([
+                    fetch('/api/nessie/deposits'),
+                    fetch('/api/nessie/withdrawals')
+                ]);
 
-                prompt = `You are a financial assistant providing brief, focused responses. Be concise and direct.
-Keep each section to 2-3 short bullet points maximum. No markdown formatting.
+                const depositsData = await depositsRes.json();
+                const withdrawalsData = await withdrawalsRes.json();
 
-Here is your financial data:
+                // Combine and format transactions
+                const allTransactions = [
+                    ...depositsData.deposits.map(d => ({
+                        ...d,
+                        type: 'deposit',
+                        formattedAmount: `+$${d.amount.toFixed(2)}`
+                    })),
+                    ...withdrawalsData.withdrawals.map(w => ({
+                        ...w,
+                        type: 'withdrawal',
+                        formattedAmount: `-$${w.amount.toFixed(2)}`
+                    }))
+                ];
+
+                // Sort by date
+                allTransactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+
+                // Calculate totals
+                const totalDeposits = depositsData.deposits.reduce((sum, d) => sum + d.amount, 0);
+                const totalWithdrawals = withdrawalsData.withdrawals.reduce((sum, w) => sum + w.amount, 0);
+                const netAmount = totalDeposits - totalWithdrawals;
+
+                prompt = `You are a friendly financial assistant having a casual conversation. Respond in a simple, easy-to-understand way without using financial jargon. Keep your response brief and conversational, as if chatting with a friend.
+
+Here is your complete financial transaction data:
 
 Transaction Summary:
-Total transactions: ${summaryData.metadata.totalTransactions}
-Deposits: ${summaryData.metadata.depositsCount}
-Withdrawals: ${summaryData.metadata.withdrawalsCount}
+Total Transactions: ${allTransactions.length}
+Total Deposits: ${depositsData.deposits.length} (Total: $${totalDeposits.toFixed(2)})
+Total Withdrawals: ${withdrawalsData.withdrawals.length} (Total: $${totalWithdrawals.toFixed(2)})
+Net Amount: $${netAmount.toFixed(2)}
 
-Time-based Analysis:
-${Object.entries(summaryData.timeSeriesData)
-    .map(([hour, amount]) => `Hour ${hour}: $${amount.toFixed(2)}`)
-    .join('\n')}
+All Transactions (from newest to oldest):
+${allTransactions.map(t => 
+    `${new Date(t.transaction_date).toLocaleDateString()} - ${t.description}: ${t.formattedAmount}`
+).join('\n')}
 
-Based on this data, answer the following question: ${userMessage}
+Question: ${userMessage}
 
-Format your response in 4 short sections:
-
-1. Quick Answer (1-2 sentences)
-
-2. Key Patterns (2-3 bullet points)
-
-3. Quick Advice (2-3 bullet points)
-
-4. Main Concerns (1-2 bullet points)
-
-Keep each bullet point to one line. Be direct and specific.`;
+Please provide a brief, friendly response in 2-3 short sentences. Use everyday language and avoid technical terms. Focus on the most important points that would matter to someone managing their money.`;
             }
 
             const result = await chat.sendMessage(prompt);
