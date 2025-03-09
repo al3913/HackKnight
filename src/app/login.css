@@ -250,6 +250,17 @@
   animation: float-dragon 3s ease-in-out infinite;
 }
 
+.stats-tree {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scale(2);
+  bottom: 9rem;
+  width: 150px;
+  height: auto;
+  z-index: 1;
+  opacity: 1;
+}
+
 .overview-section {
   margin-top: 2rem;
   z-index: 2;
@@ -367,6 +378,7 @@
   height: 12rem;
   background: linear-gradient(to bottom, #227C72, #113D21);
   border-radius: 100% 100% 0 0;
+  z-index: 1;
 }
 
 @keyframes float {
@@ -388,7 +400,7 @@
   transform: translateX(-50%);
   width: 8rem;
   height: auto;
-  z-index: 1;
+  z-index: 1000;
   animation: float 3s ease-in-out infinite;
 }
 
@@ -474,12 +486,12 @@
 
 .tree {
   position: absolute;
-  bottom: 8rem;
-  width: 30px;
-  height: 45px;
-  background: #113D21;
-  clip-path: polygon(50% 0%, 20% 100%, 80% 100%);
+  bottom: 0; /* Adjust this if needed */
+  width: 80px;  /* Adjust size based on your new PNG */
+  height: auto;  /* Maintain aspect ratio */
   z-index: 2;
+  animation: move-tree 30s linear infinite;
+  pointer-events: none; /* Prevent interaction */
 }
 
 .tree::before {
@@ -516,6 +528,7 @@
   animation: move-tree 28s linear infinite;
   transform: scale(1.1);
 }
+
 
 .content-section {
   display: flex;
@@ -1168,4 +1181,44 @@
   font-size: 0.9rem;
   margin-top: 0.25rem;
   display: block;
+}
+
+@keyframes move-login-tree {
+  from {
+    transform: translateX(-100px) scale(1);
+  }
+  to {
+    transform: translateX(calc(100vw + 100px)) scale(1);
+  }
+}
+
+.login-tree {
+  position: absolute;
+  bottom: 2rem;
+  width: 80px;
+  height: auto;
+  z-index: 2;
+  opacity: 0.9;
+  pointer-events: none;
+  left: -100px;
+}
+
+.login-tree1 {
+  animation: move-login-tree 25s linear infinite;
+  bottom: 2.5rem;
+  transform: scale(0.8);
+}
+
+.login-tree2 {
+  animation: move-login-tree 30s linear infinite;
+  bottom: 2rem;
+  transform: scale(1);
+  animation-delay: 8s;
+}
+
+.login-tree3 {
+  animation: move-login-tree 28s linear infinite;
+  bottom: 1.5rem;
+  transform: scale(0.9);
+  animation-delay: 16s;
 } 

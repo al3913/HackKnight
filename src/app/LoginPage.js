@@ -136,32 +136,35 @@ const LoginPage = () => {
         height={48}
         className="cloud"
       />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
-      <Image
-        src="/cloud1.png"
-        alt="Cloud"
-        width={80}
-        height={48}
-        className="cloud"
-      />
       
-      <div className="tree"></div>
-      <div className="tree"></div>
-      <div className="tree"></div>
-      <div className="tree"></div>
+      <Image
+        src="/tree.png"
+        alt="Tree"
+        width={150}
+        height={150}
+        className="login-tree login-tree1"
+      />
+      <Image
+        src="/tree.png"
+        alt="Tree"
+        width={150}
+        height={150}
+        className="login-tree login-tree2"
+      />
+      <Image
+        src="/tree.png"
+        alt="Tree"
+        width={150}
+        height={150}
+        className="login-tree login-tree3"
+      />
+      <Image
+        src="/tree.png"
+        alt="Tree"
+        width={150}
+        height={150}
+        className="login-tree login-tree4"
+      />
 
       <div className="logo-section">
         <Image
