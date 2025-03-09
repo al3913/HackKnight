@@ -138,12 +138,13 @@ const PieChart = ({ refreshTrigger }) => {
       display: 'flex',
       alignItems: 'center',
       gap: '0.5rem',
-      marginBottom: '-0.6rem'
+      marginBottom: '-0.6rem',
+      marginleft: '0.2rem'
     }}>
       <div style={{
         position: 'relative',
         width: '200px',
-        height: '36px',
+        height: '30px',
         backgroundColor: '#E5E7EB',
         borderRadius: '18px',
         padding: '3px',
@@ -230,7 +231,7 @@ const PieChart = ({ refreshTrigger }) => {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100%',
-          marginTop: '-10rem',
+          marginTop: '10rem',
           marginLeft: '0.5rem'
         }}>
           Loading chart data...

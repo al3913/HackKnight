@@ -5,6 +5,8 @@
   justify-content: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #87CEEB 0%, #B4E7F8 15%, #E8F7D6 40%, #9DE4C2 70%, #5ED3B8 100%);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
   position: relative;
   overflow: hidden;
   padding-bottom: 8rem;
@@ -147,22 +149,22 @@
   color: #093030;
   margin: 0;
   font-weight: bold;
-  animation: welcome-fade-in 0.8s ease-out forwards;
+  opacity: 0;
+  animation: welcome-fade-in 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
 }
 
 .welcome-section p {
   font-size: 1.75rem;
   color: #093030;
-  opacity: 0.8;
-  margin-top: 0.5rem;
-  animation: welcome-fade-in 0.8s ease-out 0.2s forwards;
   opacity: 0;
+  margin-top: 0.5rem;
+  animation: welcome-fade-in 1s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
 }
 
 @keyframes slide-up {
   0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   100% {
     opacity: 1;
@@ -184,6 +186,9 @@
     opacity: 0;
     transform: scale(0.95);
   }
+  50% {
+    opacity: 0.5;
+  }
   100% {
     opacity: 1;
     transform: scale(1);
@@ -198,7 +203,8 @@
   position: relative;
   z-index: 2;
   backdrop-filter: blur(10px);
-  animation: slide-up 0.6s ease-out forwards;
+  opacity: 0;
+  animation: slide-up 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;
 }
 
 .stats-container {
@@ -265,11 +271,35 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-25px);
   }
   100% {
     transform: translateY(0);
   }
+}
+
+@keyframes dragon-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.dragon {
+  position: fixed;
+  bottom: 11.5rem;
+  right: 4rem;
+  width: 8rem;
+  height: auto;
+  z-index: 1000;
+  opacity: 0;
+  animation: 
+    float-dragon 3s ease-in-out infinite,
+    dragon-fade-in 1s ease-out 1.2s forwards;
+  transform-origin: center;
+  will-change: transform;
 }
 
 .stats-dragon {
@@ -279,7 +309,13 @@
   width: 210px;
   height: 160px;
   z-index: 3;
-  animation: float-dragon 3s ease-in-out infinite;
+  opacity: 0;
+  animation: 
+    float-dragon 3s ease-in-out infinite,
+    dragon-fade-in 1s ease-out 1.2s forwards;
+  transform-origin: right;
+  margin-left: -2rem;
+  will-change: transform;
 }
 
 .stats-tree {
@@ -320,22 +356,26 @@
   border-radius: 1.5rem;
   backdrop-filter: blur(10px);
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
   overflow: hidden;
-  animation: scale-in 0.5s ease-out forwards;
+  opacity: 0;
+  animation: scale-in 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .overview-card:first-child {
   min-height: 400px;
-  animation-delay: 0.2s;
+  animation-delay: 0.8s;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .overview-card:last-child {
   min-height: 400px;
-  overflow-y: auto;
-  animation-delay: 0.4s;
+  overflow: visible;
+  animation-delay: 1s;
+  padding: 1rem;
 }
 
 .logo-section {
@@ -345,6 +385,7 @@
   margin-bottom: 2rem;
   z-index: 1;
   margin-top: -10rem;
+  animation: logo-entrance 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .logo {
@@ -352,6 +393,8 @@
   height: auto;
   margin-bottom: -1rem;
   margin-left: -1rem;
+  animation: pulse 3s ease-in-out infinite;
+  transform-origin: center;
 }
 
 .title {
@@ -359,6 +402,8 @@
   font-size: 1rem;
   margin-top: -2rem;
   margin-left: 5rem;
+  opacity: 0;
+  animation: button-entrance 0.8s ease-out 0.5s forwards;
 }
 
 .button-container {
@@ -367,9 +412,12 @@
   gap: 1rem;
   width: 16rem;
   z-index: 1;
+  opacity: 0;
+  animation: button-entrance 0.8s ease-out 0.8s forwards;
+  margin-top: 0.7rem;
 }
 
-.login-button {
+.login-button, .signup-button {
   width: 100%;
   padding: 0.75rem;
   border: none;
@@ -381,63 +429,59 @@
   font-size: 1.1rem;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
-  margin-top: -1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.signup-button {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 9999px;
-  background-color: white;
-  color: #093030;
-  font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 500;
-  font-size: 1.1rem;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
+.login-button::after, .signup-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease-out, height 0.6s ease-out;
+}
+
+.login-button:hover::after, .signup-button:hover::after {
+  width: 300px;
+  height: 300px;
 }
 
 .login-button:hover,
 .signup-button:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) scale(1.02);
   background-color: #D6F3BF;
 }
 
 .wave-background {
   position: absolute;
-  bottom: 0;
+  bottom: -20px;
   left: -1rem;
   width: calc(100% + 2rem);
-  height: 12rem;
-  background: linear-gradient(to bottom, #227C72, #113D21);
+  height: 14rem;
+  background: linear-gradient(to bottom, #2a7d62, #0a2815);
   border-radius: 100% 100% 0 0;
   z-index: 1;
+  animation: wave-animation 6s ease-in-out infinite;
+  transform-origin: bottom;
 }
 
-@keyframes float {
+@keyframes wave-animation {
   0% {
-    transform: translateX(-50%) translateY(0px);
+    transform: translateY(0) scaleY(1) scaleX(1);
   }
   50% {
-    transform: translateX(-50%) translateY(-10px);
+    transform: translateY(-10px) scaleY(1.05) scaleX(0.99);
   }
   100% {
-    transform: translateX(-50%) translateY(0px);
+    transform: translateY(0) scaleY(1) scaleX(1);
   }
-}
-
-.dragon {
-  position: absolute;
-  bottom: 11.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8rem;
-  height: auto;
-  z-index: 1000;
-  animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float-cloud-1 {
@@ -753,9 +797,8 @@
   background: rgba(255, 255, 255, 0.6);
   border-radius: 1.5rem;
   backdrop-filter: blur(10px);
-  animation: slide-up 0.6s ease-out forwards;
-  animation-delay: 0.6s;
   opacity: 0;
+  animation: slide-up 1s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
 }
 
 .trends-section h2 {
@@ -1125,7 +1168,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   backdrop-filter: blur(4px);
 }
 
@@ -1138,6 +1181,7 @@
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   animation: dialog-fade-in 0.3s ease-out;
+  z-index: 10000;
 }
 
 .signup-dialog h2 {
@@ -1318,4 +1362,62 @@
 
 .info-popup li:last-child {
   margin-bottom: 0;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes logo-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes button-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes float-tree {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
 } 
