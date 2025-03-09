@@ -295,7 +295,17 @@ const QuestsPage = () => {
             </div>
 
             <div className="analytics-card">
-              <h3>Earnings Over Time</h3>
+              <div className="earnings-header">
+                <h3>Earnings Over Time</h3>
+                <select 
+                  className="view-type-select"
+                  defaultValue="gainLoss"
+                >
+                  <option value="gainLoss">Gain/Loss</option>
+                  <option value="gain">Gain</option>
+                  <option value="loss">Loss</option>
+                </select>
+              </div>
               <div className="timeframe-buttons">
                 <button 
                   className={`timeframe-button ${activeTimeframe === 'day' ? 'active' : ''}`}
@@ -725,6 +735,35 @@ const QuestsPage = () => {
 
         .dialog-button.cancel:hover {
           background: rgba(0, 0, 0, 0.05);
+        }
+
+        .earnings-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .earnings-header h3 {
+          margin: 0;
+        }
+
+
+        .view-type-select {
+          padding: 0.5rem;
+          font-size: 0.9rem;
+          border: 2px solid #227C72;
+          border-radius: 0.5rem;
+          background: rgba(255, 255, 255, 0.9);
+          color: #093030;
+          font-family: inherit;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .view-type-select:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(34, 124, 114, 0.2);
         }
       `}</style>
     </div>
