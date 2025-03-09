@@ -70,16 +70,22 @@ const SideHustleAdvisor = ({ selectedHustle }) => {
     const analyzeTransactions = (deposits, withdrawals) => {
         // Get time patterns
         const timeAnalysis = [...deposits, ...withdrawals].reduce((acc, t) => {
-            const hour = new Date(t.transaction_date).getHours();
-            acc[hour] = (acc[hour] || 0) + 1;
+            // Convert UTC to Eastern Time
+            const date = new Date(t.transaction_date);
+            const estDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            const hour = estDate.getHours();
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const formattedHour = hour % 12 || 12; // Convert 24h to 12h format
+            const timeKey = `${formattedHour}${period}`;
+            acc[timeKey] = (acc[timeKey] || 0) + 1;
             return acc;
         }, {});
 
-        // Find peak hours (top 3 busiest hours)
+        // Find peak hours (top 3 busiest times)
         const peakHours = Object.entries(timeAnalysis)
             .sort(([,a], [,b]) => b - a)
             .slice(0, 3)
-            .map(([hour]) => parseInt(hour));
+            .map(([hour]) => hour);
 
         // Calculate earnings stats
         const totalEarnings = deposits.reduce((sum, d) => sum + d.amount, 0);
@@ -120,7 +126,7 @@ Business Details:
 Performance Data:
 - Total Earnings: $${data.totalEarnings.toFixed(2)}
 - Average Transaction: $${data.averageTransaction.toFixed(2)}
-- Peak Hours: ${data.peakHours.map(h => `${h}:00`).join(', ')}
+- Peak Hours: ${data.peakHours.join(', ')}
 - Total Transactions: ${data.transactionCount}
 
 Provide a concise response with:

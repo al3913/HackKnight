@@ -24,6 +24,49 @@ function isRelevantTopic(input) {
     );
 }
 
+// Function to standardize transaction timestamps
+const standardizeTransactionTime = (date) => {
+    // Create a date object
+    const d = new Date(date);
+    
+    // Options for converting to EST time
+    const options = {
+        timeZone: 'America/New_York',  // This ensures EST timezone
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    };
+
+    // Get the date in EST
+    const estFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+
+    // Convert to EST timestamp
+    const [month, day, year, hour, minute, second] = estFormatter.format(d)
+        .replace(',', '')
+        .split(/[\/\s:]/)
+        .map(num => parseInt(num, 10));
+
+    const estDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+
+    return {
+        formatted: d.toLocaleString('en-US', options),
+        timestamp: estDate.getTime(),
+        hour: hour // Add the EST hour for time-based analysis
+    };
+};
+
 // Function to format the response text with proper line breaks and indentation
 const formatResponse = (text) => {
     // Split by line breaks and remove empty lines
@@ -45,9 +88,9 @@ const analyzeTransactions = (transactions) => {
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Filter transactions by time periods
-    const weeklyTransactions = transactions.filter(t => new Date(t.transaction_date) >= oneWeekAgo);
-    const monthlyTransactions = transactions.filter(t => new Date(t.transaction_date) >= oneMonthAgo);
+    // Filter transactions by time periods using EST timestamps
+    const weeklyTransactions = transactions.filter(t => t.timestamp >= oneWeekAgo.getTime());
+    const monthlyTransactions = transactions.filter(t => t.timestamp >= oneMonthAgo.getTime());
 
     // Calculate spending by type
     const categorizeTransactions = (txns) => {
@@ -65,17 +108,35 @@ const analyzeTransactions = (transactions) => {
                 category = 'entertainment';
             }
 
+            // Add time-based analysis
+            const hour = new Date(t.timestamp).getHours();
             if (!acc[category]) {
-                acc[category] = { total: 0, count: 0 };
+                acc[category] = { total: 0, count: 0, byHour: {} };
+            }
+            if (!acc[category].byHour[hour]) {
+                acc[category].byHour[hour] = { total: 0, count: 0 };
             }
             acc[category].total += t.amount;
             acc[category].count += 1;
+            acc[category].byHour[hour].total += t.amount;
+            acc[category].byHour[hour].count += 1;
             return acc;
         }, {});
     };
 
     const weeklySpendingByCategory = categorizeTransactions(weeklyTransactions.filter(t => t.type === 'withdrawal'));
     const monthlySpendingByCategory = categorizeTransactions(monthlyTransactions.filter(t => t.type === 'withdrawal'));
+
+    // Analyze transaction patterns by hour (in EST)
+    const hourlyPatterns = transactions.reduce((acc, t) => {
+        const hour = new Date(t.timestamp).getHours();
+        if (!acc[hour]) {
+            acc[hour] = { count: 0, total: 0 };
+        }
+        acc[hour].count += 1;
+        acc[hour].total += t.amount;
+        return acc;
+    }, {});
 
     return {
         weekly: {
@@ -94,7 +155,8 @@ const analyzeTransactions = (transactions) => {
         trends: {
             averageTransactionAmount: transactions.reduce((sum, t) => sum + t.amount, 0) / transactions.length,
             mostFrequentCategory: Object.entries(monthlySpendingByCategory)
-                .sort((a, b) => b[1].count - a[1].count)[0]?.[0] || 'none'
+                .sort((a, b) => b[1].count - a[1].count)[0]?.[0] || 'none',
+            hourlyPatterns: hourlyPatterns
         }
     };
 };
@@ -157,20 +219,30 @@ const ChatBot = () => {
 
             // Combine and format transactions
             const allTransactions = [
-                ...depositsData.deposits.map(d => ({
-                    ...d,
-                    type: 'deposit',
-                    formattedAmount: `+$${d.amount.toFixed(2)}`
-                })),
-                ...withdrawalsData.withdrawals.map(w => ({
-                    ...w,
-                    type: 'withdrawal',
-                    formattedAmount: `-$${w.amount.toFixed(2)}`
-                }))
+                ...depositsData.deposits.map(d => {
+                    const timeInfo = standardizeTransactionTime(d.transaction_date);
+                    return {
+                        ...d,
+                        type: 'deposit',
+                        formattedAmount: `+$${d.amount.toFixed(2)}`,
+                        formattedDate: timeInfo.formatted,
+                        timestamp: timeInfo.timestamp
+                    };
+                }),
+                ...withdrawalsData.withdrawals.map(w => {
+                    const timeInfo = standardizeTransactionTime(w.transaction_date);
+                    return {
+                        ...w,
+                        type: 'withdrawal',
+                        formattedAmount: `-$${w.amount.toFixed(2)}`,
+                        formattedDate: timeInfo.formatted,
+                        timestamp: timeInfo.timestamp
+                    };
+                })
             ];
 
-            // Sort by date
-            allTransactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+            // Sort by timestamp
+            allTransactions.sort((a, b) => b.timestamp - a.timestamp);
 
             // Calculate totals
             const totalDeposits = depositsData.deposits.reduce((sum, d) => sum + d.amount, 0);
@@ -255,9 +327,9 @@ Net Amount: $${netAmount.toFixed(2)}
 
 All Transactions (from newest to oldest):
 ${allTransactions.map(t => 
-    `${new Date(t.transaction_date).toLocaleDateString()} - ${t.description}: ${t.formattedAmount}`
+    `${t.formattedDate} - ${t.description}: ${t.formattedAmount}`
 ).join('\n')}
-
+Make all times into Eastern time, not 24 hour clock time.
 Question: ${userMessage}
 
 Please provide a brief, friendly response in 2-3 short sentences. Use everyday language and avoid technical terms. Focus on the most important points that would matter to someone managing their money.`;
