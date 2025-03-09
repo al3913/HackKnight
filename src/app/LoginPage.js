@@ -7,6 +7,9 @@ const LoginPage = () => {
   const router = useRouter();
   const [showSignupDialog, setShowSignupDialog] = useState(false);
   const [showBankDialog, setShowBankDialog] = useState(false);
+  const [showHustleDialog, setShowHustleDialog] = useState(false);
+  const [sideHustles, setSideHustles] = useState([]);
+  const [currentHustle, setCurrentHustle] = useState('');
   const [signupForm, setSignupForm] = useState({
     firstName: 'John',
     lastName: 'Capital',
@@ -52,9 +55,23 @@ const LoginPage = () => {
   };
 
   const handleBankConnect = () => {
-    // Here you would typically handle the bank connection
-    // For now, we'll just close the dialog and redirect
     setShowBankDialog(false);
+    setShowHustleDialog(true);
+  };
+
+  const handleAddHustle = () => {
+    if (currentHustle.trim()) {
+      setSideHustles([...sideHustles, currentHustle.trim()]);
+      setCurrentHustle('');
+    }
+  };
+
+  const handleRemoveHustle = (index) => {
+    setSideHustles(sideHustles.filter((_, i) => i !== index));
+  };
+
+  const handleHustleSubmit = () => {
+    // Here you would typically save the side hustles
     router.push('/home');
   };
 
@@ -218,6 +235,118 @@ const LoginPage = () => {
                 textAlign: 'center' 
               }}>
                 By continuing you are accepting our <span style={{ color: '#227C72', cursor: 'pointer' }}>Privacy Policy</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHustleDialog && (
+        <div className="signup-dialog-overlay">
+          <div className="signup-dialog">
+            <h2>What are your side hustles?</h2>
+            <div className="hustle-content">
+              <p style={{ 
+                color: '#093030', 
+                marginBottom: '1.5rem',
+                fontSize: '1.1rem' 
+              }}>
+                Tell us about your current or planned side hustles
+              </p>
+              
+              <div className="hustle-input-container" style={{
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem',
+                  marginBottom: '1rem' 
+                }}>
+                  <input
+                    type="text"
+                    value={currentHustle}
+                    onChange={(e) => setCurrentHustle(e.target.value)}
+                    placeholder="Enter a side hustle"
+                    className="signup-input"
+                    style={{ flex: 1 }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddHustle();
+                      }
+                    }}
+                  />
+                  <button 
+                    className="signup-dialog-button create valid"
+                    onClick={handleAddHustle}
+                    style={{ 
+                      width: 'auto', 
+                      padding: '0.5rem 1rem',
+                      marginTop: 0
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <div className="hustle-tags" style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  {sideHustles.map((hustle, index) => (
+                    <div 
+                      key={index}
+                      style={{
+                        background: 'rgba(180, 231, 200, 0.3)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '9999px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        fontSize: '0.9rem',
+                        color: '#093030'
+                      }}
+                    >
+                      {hustle}
+                      <button
+                        onClick={() => handleRemoveHustle(index)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#093030',
+                          cursor: 'pointer',
+                          padding: '0 0 0 0.25rem',
+                          fontSize: '1.1rem',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="signup-dialog-buttons">
+                <button 
+                  className={`signup-dialog-button create ${sideHustles.length > 0 ? 'valid' : ''}`}
+                  onClick={handleHustleSubmit}
+                  disabled={sideHustles.length === 0}
+                >
+                  Continue
+                </button>
+              </div>
+              
+              <p style={{ 
+                color: '#093030', 
+                fontSize: '0.9rem',
+                opacity: 0.8,
+                marginTop: '1rem',
+                textAlign: 'center'
+              }}>
+                Press Enter or click Add to include multiple side hustles
               </p>
             </div>
           </div>
