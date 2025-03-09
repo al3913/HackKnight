@@ -186,7 +186,7 @@ const HomePage = () => {
       amount: parseFloat(expenseAmount),
       isRecurring,
       recurringPeriod: isRecurring ? recurringPeriod : null,
-      description,
+      description: `${selectedQuest} - ${description}`,
       date: new Date().toISOString(),
       type: 'withdrawal'
     };
