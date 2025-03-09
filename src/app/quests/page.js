@@ -36,6 +36,8 @@ const QuestsPage = () => {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [activeTimeframe, setActiveTimeframe] = useState('day');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showAddHustleDialog, setShowAddHustleDialog] = useState(false);
+  const [newHustle, setNewHustle] = useState('');
   const router = useRouter();
 
   // Fetch available side hustles
@@ -150,6 +152,32 @@ const QuestsPage = () => {
     }
   };
 
+  const handleAddHustle = () => {
+    if (newHustle.trim()) {
+      const updatedHustles = [...sideHustles, newHustle.trim()];
+      setSideHustles(updatedHustles);
+      // Update localStorage
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      userData.sideHustles = updatedHustles;
+      localStorage.setItem('userData', JSON.stringify(userData));
+      setNewHustle('');
+      setShowAddHustleDialog(false);
+    }
+  };
+
+  const handleDeleteHustle = (hustleToDelete) => {
+    const updatedHustles = sideHustles.filter(hustle => hustle !== hustleToDelete);
+    setSideHustles(updatedHustles);
+    // Update localStorage
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    userData.sideHustles = updatedHustles;
+    localStorage.setItem('userData', JSON.stringify(userData));
+    // If the deleted hustle was selected, select the first available hustle
+    if (selectedHustle === hustleToDelete && updatedHustles.length > 0) {
+      setSelectedHustle(updatedHustles[0]);
+    }
+  };
+
   return (
     <div className="quests-container">
       <header className="quests-header">
@@ -164,17 +192,35 @@ const QuestsPage = () => {
 
       <div className="quests-content">
         <div className="quest-selector">
-          <select 
-            value={selectedHustle}
-            onChange={(e) => setSelectedHustle(e.target.value)}
-            className="hustle-select"
-          >
-            {sideHustles.map((hustle) => (
-              <option key={hustle} value={hustle}>
-                {hustle.charAt(0).toUpperCase() + hustle.slice(1)}
-              </option>
-            ))}
-          </select>
+          <div className="hustle-header">
+            <select 
+              value={selectedHustle}
+              onChange={(e) => setSelectedHustle(e.target.value)}
+              className="hustle-select"
+            >
+              {sideHustles.map((hustle) => (
+                <option key={hustle} value={hustle}>
+                  {hustle.charAt(0).toUpperCase() + hustle.slice(1)}
+                </option>
+              ))}
+            </select>
+            <div className="hustle-actions">
+              <button 
+                className="add-hustle-button"
+                onClick={() => setShowAddHustleDialog(true)}
+              >
+                + Add Hustle
+              </button>
+              {selectedHustle && (
+                <button 
+                  className="delete-hustle-button"
+                  onClick={() => handleDeleteHustle(selectedHustle)}
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -261,6 +307,45 @@ const QuestsPage = () => {
         )}
       </div>
 
+      {/* Add Hustle Dialog */}
+      {showAddHustleDialog && (
+        <div className="dialog-overlay">
+          <div className="dialog">
+            <h3>Add New Side Hustle</h3>
+            <input
+              type="text"
+              value={newHustle}
+              onChange={(e) => setNewHustle(e.target.value)}
+              placeholder="Enter side hustle name"
+              className="hustle-input"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddHustle();
+                }
+              }}
+            />
+            <div className="dialog-buttons">
+              <button 
+                className="dialog-button confirm"
+                onClick={handleAddHustle}
+                disabled={!newHustle.trim()}
+              >
+                Add
+              </button>
+              <button 
+                className="dialog-button cancel"
+                onClick={() => {
+                  setNewHustle('');
+                  setShowAddHustleDialog(false);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .quests-container {
           min-height: 100vh;
@@ -303,22 +388,86 @@ const QuestsPage = () => {
           margin-bottom: 2rem;
         }
 
+        .hustle-header {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+          margin-bottom: 2rem;
+        }
+
         .hustle-select {
-          width: 100%;
-          padding: 1rem;
-          font-size: 1.1rem;
+          flex: 1;
+          padding: 0.75rem;
+          font-size: 0.95rem;
           border: 2px solid #227C72;
-          border-radius: 1rem;
+          border-radius: 0.75rem;
           background: rgba(255, 255, 255, 0.9);
           color: #093030;
-          font-family: 'Jersey_15', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: inherit;
           cursor: pointer;
           transition: all 0.2s ease;
         }
 
         .hustle-select:focus {
           outline: none;
-          box-shadow: 0 0 0 2px #227C72;
+          box-shadow: 0 0 0 2px rgba(34, 124, 114, 0.2);
+        }
+
+        .hustle-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .add-hustle-button,
+        .delete-hustle-button {
+          padding: 0.75rem 1rem;
+          border: none;
+          border-radius: 0.75rem;
+          font-family: inherit;
+          font-size: 0.95rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          height: 45px; /* Match dropdown height */
+        }
+
+        .add-hustle-button {
+          background: linear-gradient(135deg, #227C72, #1b6359);
+          color: white;
+          min-width: 120px;
+        }
+
+        .add-hustle-button:hover {
+          background: linear-gradient(135deg, #1b6359, #145049);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .add-hustle-button:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .delete-hustle-button {
+          background: linear-gradient(135deg, #ff4d4d, #d32f2f);
+          color: white;
+          min-width: 100px;
+        }
+
+        .delete-hustle-button:hover {
+          background: linear-gradient(135deg, #d32f2f, #b71c1c);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .delete-hustle-button:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .quest-analytics {
@@ -442,6 +591,100 @@ const QuestsPage = () => {
         .timeframe-button.active {
           background: #227C72;
           color: white;
+        }
+
+        .dialog-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+
+        .dialog {
+          background: white;
+          border-radius: 1rem;
+          padding: 1.5rem;
+          width: 90%;
+          max-width: 400px;
+          animation: dialog-fade-in 0.3s ease-out;
+        }
+
+        @keyframes dialog-fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .dialog h3 {
+          color: #093030;
+          margin: 0 0 1rem;
+          font-size: 1.25rem;
+        }
+
+        .hustle-input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 2px solid #227C72;
+          border-radius: 0.75rem;
+          font-size: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .hustle-input:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(34, 124, 114, 0.2);
+        }
+
+        .dialog-buttons {
+          display: flex;
+          gap: 0.75rem;
+          justify-content: flex-end;
+        }
+
+        .dialog-button {
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.75rem;
+          font-family: inherit;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .dialog-button.confirm {
+          background: #227C72;
+          color: white;
+        }
+
+        .dialog-button.confirm:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .dialog-button.confirm:not(:disabled):hover {
+          background: #1b6359;
+        }
+
+        .dialog-button.cancel {
+          background: transparent;
+          color: #093030;
+          border: 2px solid #E2E8F0;
+        }
+
+        .dialog-button.cancel:hover {
+          background: rgba(0, 0, 0, 0.05);
         }
       `}</style>
     </div>
