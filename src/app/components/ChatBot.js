@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './ChatBot.module.css';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generatePrompt, formatAIResponse } from '../utils/promptManager';
 
 
 
@@ -205,55 +206,9 @@ const ChatBot = () => {
                 return;
             }
 
-            let prompt = userMessage;
-            if (userMessage.toLowerCase().match(/transaction|spend|spent|payment|deposit|withdrawal|budget|expense|money/)) {
-                // Fetch the latest transaction data from the summaries endpoint
-                const summaryRes = await fetch('/api/nessie/summaries');
-                const summaryData = await summaryRes.json();
-
-                prompt = `You are a financial assistant providing brief, focused responses. Be concise and direct.
-Keep each section to 2-3 short bullet points maximum. No markdown formatting.
-
-Here is your financial data:
-
-Transaction Summary:
-Total transactions: ${summaryData.metadata.totalTransactions}
-Deposits: ${summaryData.metadata.depositsCount}
-Withdrawals: ${summaryData.metadata.withdrawalsCount}
-
-Time-based Analysis:
-${Object.entries(summaryData.timeSeriesData)
-    .map(([hour, amount]) => `Hour ${hour}: $${amount.toFixed(2)}`)
-    .join('\n')}
-
-Based on this data, answer the following question: ${userMessage}
-
-Format your response in 4 short sections:
-
-1. Quick Answer (1-2 sentences)
-
-2. Key Patterns (2-3 bullet points)
-
-3. Quick Advice (2-3 bullet points)
-
-4. Main Concerns (1-2 bullet points)
-
-Keep each bullet point to one line. Be direct and specific.`;
-            }
-
+            const prompt = await generatePrompt(userMessage);
             const result = await chat.sendMessage(prompt);
-            const response = formatResponse(result.response.text())
-                // Remove any markdown formatting
-                .replace(/\*\*/g, '')
-                .replace(/\#/g, '')
-                .replace(/\[|\]/g, '')
-                // Ensure proper spacing but not too much
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line) // Remove empty lines
-                .join('\n\n')
-                // Reduce multiple newlines to maximum of two
-                .replace(/\n{3,}/g, '\n\n');
+            const response = formatAIResponse(result.response.text());
             
             setMessages(prev => [...prev, {
                 text: response,

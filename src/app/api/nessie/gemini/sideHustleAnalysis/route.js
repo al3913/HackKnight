@@ -108,40 +108,34 @@ export async function GET(request) {
 
     // Prepare data for Gemini analysis
     const analysisPrompt = `
-      Analyze this ${sideHustle} side hustle data and provide insights focused on peak earning periods and key metrics:
+      Based on the ${sideHustle} transaction data:
 
-      💰 Current Performance Metrics:
+      💰 Financial Data:
       • Total Earnings: $${totalEarnings}
       • Total Expenses: $${totalExpenses}
       • Net Income: $${netIncome}
-      • Total Transactions: ${transactionCount}
       • Number of Income Transactions: ${deposits.count || 0}
       • Number of Expense Transactions: ${withdrawals.count || 0}
 
-      ⏰ Activity Patterns:
+      ⏰ Activity Data:
       • Active Hours: ${timingAnalysis.transactionsByHour.map((count, hour) => `${hour}:00 (${count} transactions)`).filter(h => h.includes('(0') === false).join(', ')}
       • Active Days: ${Object.entries(timingAnalysis.transactionsByDay)
         .filter(([_, count]) => count > 0)
         .map(([day, count]) => `${day} (${count} transactions)`)
         .join(', ')}
 
-      Please provide a clear analysis in the following format:
+      Provide exactly three bullet points, keeping each response brief and specific:
 
-      ⭐ PEAK EARNING PERIODS
-      ---------------------
-      • Most Profitable Hours: [List specific hours when income is highest]
-      • Best Days: [List the days that generate the most income]
-      • Peak Season Opportunities: [Any seasonal or periodic high-income opportunities]
-      • Why These Times Work Best: [Clear explanation of why these times are most profitable]
+      ⏰ BEST TIME TO WORK
+      • [Identify the most profitable time period during the day based on transaction patterns. Be specific about hours.]
 
-      📊 KEY PERFORMANCE METRICS
-      -----------------------
-      • Average Earnings: [Per transaction, per day, or per period]
-      • Profit Margins: [Analysis of earnings vs expenses]
-      • Transaction Patterns: [Frequency and value patterns]
-      • Growth Trends: [Income growth or decline patterns]
+      💰 MONTHLY HIGHLIGHTS
+      • [State the highest income and expense amounts from the most recent transactions. Include specific amounts and dates.]
 
-      Keep the analysis focused on actual data patterns and provide specific, actionable insights for ${sideHustle}.
+      🎯 OVERALL RECOMMENDATION
+      • [Give one clear, actionable suggestion based on the complete transaction history.]
+
+      Keep each bullet point concise - no more than two sentences each.
     `;
 
     try {
