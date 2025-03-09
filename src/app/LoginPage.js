@@ -8,7 +8,7 @@ const LoginPage = () => {
   const [showSignupDialog, setShowSignupDialog] = useState(false);
   const [showBankDialog, setShowBankDialog] = useState(false);
   const [showHustleDialog, setShowHustleDialog] = useState(false);
-  const [sideHustles, setSideHustles] = useState([]);
+  const [sideHustles, setSideHustles] = useState(['Uber', 'Etsy', 'Pokemon', 'eBay']);
   const [currentHustle, setCurrentHustle] = useState('');
   const [signupForm, setSignupForm] = useState({
     firstName: 'John',
