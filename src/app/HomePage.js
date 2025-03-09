@@ -16,8 +16,8 @@ const HomePage = () => {
   const [activeTimeframe, setActiveTimeframe] = useState('month');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: 'John Smith',
-    email: 'john.smith@example.com',
+    name: 'John Captial',
+    email: 'john.captial@example.com',
     id: '25030024'
   });
   const menuRef = useRef(null);

@@ -945,7 +945,6 @@
 .cancel-button:hover {
   background-color: rgba(255, 255, 255, 0.5);
 }
-
 .logout-button {
   margin: 0 !important;
   margin-top: 2rem !important;

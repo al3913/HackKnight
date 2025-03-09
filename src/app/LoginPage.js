@@ -13,7 +13,7 @@ const LoginPage = () => {
   const [signupForm, setSignupForm] = useState({
     firstName: 'John',
     lastName: 'Capital',
-    username: 'JohnCap135',
+    username: 'john.captial',
     password: 'John12345678',
     confirmPassword: 'John12345678'
   });
@@ -126,85 +126,84 @@ const LoginPage = () => {
         <button className="login-button" onClick={handleLogin}>Login</button>
         <button className="signup-button" onClick={handleSignupClick}>Signup</button>
       </div>
-
       {showSignupDialog && (
-        <div className="signup-dialog-overlay">
-          <div className="signup-dialog">
-            <h2>Create Account</h2>
-            <form className="signup-form" onSubmit={(e) => e.preventDefault()}>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="firstName"
-                  value={signupForm.firstName}
-                  onChange={handleInputChange}
-                  placeholder="First Name"
-                  className="signup-input"
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="lastName"
-                  value={signupForm.lastName}
-                  onChange={handleInputChange}
-                  placeholder="Last Name"
-                  className="signup-input"
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="username"
-                  value={signupForm.username}
-                  onChange={handleInputChange}
-                  placeholder="Username"
-                  className="signup-input"
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="password"
-                  name="password"
-                  value={signupForm.password}
-                  onChange={handleInputChange}
-                  placeholder="Password"
-                  className="signup-input"
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={signupForm.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Confirm Password"
-                  className="signup-input"
-                />
-                {!passwordsMatch && (
-                  <span className="password-error">Passwords do not match</span>
-                )}
-              </div>
-              <div className="signup-dialog-buttons">
-                <button 
-                  className={`signup-dialog-button create ${signupForm.password && passwordsMatch ? 'valid' : ''}`}
-                  onClick={handleCreateAccount}
-                  disabled={!signupForm.password || !passwordsMatch}
-                >
-                  Create
-                </button>
-                <button 
-                  className="signup-dialog-button cancel"
-                  onClick={() => setShowSignupDialog(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
+         <div className="signup-dialog-overlay">
+           <div className="signup-dialog">
+             <h2>Create Account</h2>
+             <form className="signup-form" onSubmit={(e) => e.preventDefault()}>
+               <div className="form-group">
+                 <input
+                   type="text"
+                   name="firstName"
+                   value={signupForm.firstName}
+                   onChange={handleInputChange}
+                   placeholder="First Name"
+                   className="signup-input"
+                 />
+               </div>
+               <div className="form-group">
+                 <input
+                   type="text"
+                   name="lastName"
+                   value={signupForm.lastName}
+                   onChange={handleInputChange}
+                   placeholder="Last Name"
+                   className="signup-input"
+                 />
+               </div>
+               <div className="form-group">
+                 <input
+                   type="text"
+                   name="username"
+                   value={signupForm.username}
+                   onChange={handleInputChange}
+                   placeholder="Username"
+                   className="signup-input"
+                 />
+               </div>
+               <div className="form-group">
+                 <input
+                   type="password"
+                   name="password"
+                   value={signupForm.password}
+                   onChange={handleInputChange}
+                   placeholder="Password"
+                   className="signup-input"
+                 />
+               </div>
+               <div className="form-group">
+                 <input
+                   type="password"
+                   name="confirmPassword"
+                   value={signupForm.confirmPassword}
+                   onChange={handleInputChange}
+                   placeholder="Confirm Password"
+                   className="signup-input"
+                 />
+                 {!passwordsMatch && (
+                   <span className="password-error">Passwords do not match</span>
+                 )}
+               </div>
+               <div className="signup-dialog-buttons">
+                 <button 
+                   className={`signup-dialog-button create ${signupForm.password && passwordsMatch ? 'valid' : ''}`}
+                   onClick={handleCreateAccount}
+                   disabled={!signupForm.password || !passwordsMatch}
+                 >
+                   Create
+                 </button>
+                 <button 
+                   className="signup-dialog-button cancel"
+                   onClick={() => setShowSignupDialog(false)}
+                 >
+                   Cancel
+                 </button>
+               </div>
+             </form>
+           </div>
+         </div>
+       )}
+ 
       {showBankDialog && (
         <div className="signup-dialog-overlay">
           <div className="signup-dialog">
