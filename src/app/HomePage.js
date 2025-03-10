@@ -57,8 +57,21 @@ const HomePage = () => {
 
   // Load side hustles when component mounts
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    setSideHustles(userData.sideHustles || []);
+    const fetchSideHustles = async () => {
+      try {
+        const response = await fetch('/api/sidehustles');
+        if (!response.ok) {
+          throw new Error('Failed to fetch side hustles');
+        }
+        const data = await response.json();
+        setSideHustles(data.sideHustles || []);
+      } catch (error) {
+        console.error('Error fetching side hustles:', error);
+        setSideHustles([]);
+      }
+    };
+
+    fetchSideHustles();
   }, []);
 
   // Handle refresh for all components
