@@ -1,0 +1,10 @@
+{
+  "accounts": {
+    "process.env.ACCOUNT_ID": [
+      "Uber",
+      "Etsy",
+      "Ebay",
+      "Pokemon"
+    ]
+  }
+}
